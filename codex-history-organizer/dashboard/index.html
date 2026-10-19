@@ -45,19 +45,19 @@
 
       <section id="view-map" class="view-panel" data-view-panel="map">
         <section class="section-heading">
-          <div><p class="eyebrow">02 / Поиск</p><h2>Найти нужную сессию</h2></div>
-          <p class="section-note">Поиск работает по названию, теме и описанию проекта.</p>
+          <div><p class="eyebrow">02 / Поиск</p><h2>Найти чат или проект</h2></div>
+          <p class="section-note">Поиск работает по названию чата, теме и описанию проекта.</p>
         </section>
 
         <section class="workspace workspace--search-first">
           <div class="workspace-main">
             <div class="search-heading"><span id="session-count" class="result-count">—</span></div>
             <form id="filters" class="filters">
-              <label class="search-field"><span class="sr-only">Поиск по сессиям и проектам</span><input id="query" type="search" placeholder="Название, описание проекта или тема" autocomplete="off" /></label>
+              <label class="search-field"><span class="sr-only">Поиск по чатам и проектам</span><input id="query" type="search" placeholder="Название чата, проект или описание" autocomplete="off" /></label>
               <label><span class="sr-only">Ценность</span><select id="value"><option value="">Любая ценность</option><option value="high">Высокая</option><option value="normal">Обычная</option><option value="low">Низкая</option></select></label>
               <button class="button button--quiet" type="reset">Сбросить</button>
             </form>
-            <div id="session-list" class="session-list" aria-live="polite"></div>
+            <div id="chat-list" class="chat-list" aria-live="polite"></div>
           </div>
 
           <aside id="detail-panel" class="detail-panel" aria-live="polite">

@@ -1,4 +1,4 @@
-const state = { overview: null, sessions: [], allSessions: [], selectedProject: "", activeView: "map", refreshTimer: null, refreshing: false };
+const state = { overview: null, chats: [], allSessions: [], selectedProject: "", activeView: "map", refreshTimer: null, refreshing: false };
 
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -73,17 +73,17 @@ function renderProjects(groups) {
   });
 }
 
-function renderSessions(sessions) {
-  $("#session-count").textContent = `${sessions.length} найдено`;
-  if (!sessions.length) {
-    $("#session-list").innerHTML = `<div class="empty-state">Ничего не найдено. Попробуйте изменить запрос.</div>`;
+function renderChats(chats) {
+  $("#session-count").textContent = `${chats.length} чатов найдено`;
+  if (!chats.length) {
+    $("#chat-list").innerHTML = `<div class="empty-state">Чаты не найдены. Попробуйте изменить запрос или открыть другой проект.</div>`;
     return;
   }
-  $("#session-list").innerHTML = sessions.map((session) => `<article class="session-row">
-    <div><strong>${escapeHtml(session.name || "Без названия")}</strong><small>${escapeHtml(session.project)}</small></div>
-    <div class="session-row__topic"><small>${escapeHtml(session.topic)}</small></div>
-    <span class="session-row__status" data-value="${escapeHtml(session.value)}">${escapeHtml(session.value || "не указано")}</span>
-    <small>${escapeHtml(session.confidence || "—")}</small>
+  $("#chat-list").innerHTML = chats.map((chat) => `<article class="chat-row">
+    <div class="chat-row__main"><strong>${escapeHtml(chat.title || "Без названия")}</strong><small>${escapeHtml(chat.project || "Без проекта")}</small></div>
+    <div class="chat-row__context"><span>${escapeHtml((chat.topics || []).join(" · ") || "Тема не указана")}</span><small>${chat.sessions} связанных записей · обновлён ${formatDate(chat.last_event_at)}</small></div>
+    <span class="session-row__status" data-value="${escapeHtml(chat.value)}">${escapeHtml(chat.value || "не указано")}</span>
+    <div class="chat-row__action">${chat.chat_url ? `<a class="chat-row__open" href="${escapeHtml(chat.chat_url)}" target="_blank" rel="noopener noreferrer">Открыть чат в ChatGPT</a>` : `<small class="chat-row__locator"><strong>Как найти в ChatGPT</strong>${escapeHtml(chat.chat_locator || "Откройте проект и найдите чат по названию.")}</small>`}</div>
   </article>`).join("");
 }
 
@@ -146,13 +146,13 @@ function renderAlternativeViews() {
   renderGraph(state.overview?.groups_data || []);
 }
 
-async function loadSessions() {
+async function loadChats() {
   const query = new URLSearchParams({ q: $("#query").value, value: $("#value").value, limit: "100" });
   try {
-    state.sessions = await getJson(`/api/sessions?${query}`);
-    renderSessions(state.sessions);
+    state.chats = await getJson(`/api/chats?${query}`);
+    renderChats(state.chats);
   } catch (error) {
-    $("#session-list").innerHTML = `<div class="empty-state">Не удалось загрузить список: ${escapeHtml(error.message)}</div>`;
+    $("#chat-list").innerHTML = `<div class="empty-state">Не удалось загрузить список чатов: ${escapeHtml(error.message)}</div>`;
   }
 }
 
@@ -181,7 +181,7 @@ async function refreshDashboard({ silent = false } = {}) {
     renderProjects(state.overview.groups_data || []);
     state.allSessions = await getJson("/api/sessions?limit=500");
     renderAlternativeViews();
-    await loadSessions();
+    await loadChats();
     if (state.selectedProject) await loadProject(state.selectedProject);
     renderFreshness(state.overview);
   } catch (error) {
@@ -245,9 +245,9 @@ async function init() {
   configureAutoRefresh();
   configureSetup();
   await refreshDashboard();
-  $("#query").addEventListener("input", loadSessions);
-  $("#value").addEventListener("change", loadSessions);
-  $("#filters").addEventListener("reset", () => setTimeout(loadSessions, 0));
+  $("#query").addEventListener("input", loadChats);
+  $("#value").addEventListener("change", loadChats);
+  $("#filters").addEventListener("reset", () => setTimeout(loadChats, 0));
 }
 
 init();

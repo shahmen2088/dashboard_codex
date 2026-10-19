@@ -31,7 +31,8 @@ def main() -> int:
         assert page.title() == "Карта истории Codex"
         assert int(page.locator("#stat-sessions").inner_text()) > 0
         assert page.locator(".project-card").count() == args.expected_projects
-        assert page.locator("#session-list .session-row").count() > 0
+        assert page.locator("#chat-list .chat-row").count() > 0
+        assert page.locator(".chat-row__locator").count() > 0
         assert page.locator("#refresh-interval").input_value() == "60"
         assert "Источник обновлён" in page.locator("#freshness").inner_text()
         assert page.locator("#setup-steps .setup-step").count() == 4
@@ -42,12 +43,12 @@ def main() -> int:
 
         page.locator("#query").fill(args.query)
         page.wait_for_timeout(150)
-        assert page.locator("#session-list .session-row").count() == args.expected_query_results
+        assert page.locator("#chat-list .chat-row").count() == args.expected_query_results
 
         if args.description_query:
             page.locator("#query").fill(args.description_query)
             page.wait_for_timeout(150)
-            assert page.locator("#session-list .session-row").count() == args.expected_description_results
+            assert page.locator("#chat-list .chat-row").count() == args.expected_description_results
 
         page.locator(f'[data-project="{args.project}"]').click()
         page.wait_for_selector(".detail-panel__description", state="visible")

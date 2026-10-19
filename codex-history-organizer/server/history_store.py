@@ -96,6 +96,19 @@ class HistoryStore:
         actions = self._actions()
         return [self._card(row, actions.get(row.get("record_id", ""))) for row in self._inventory()]
 
+    def _project_summary_path(self, project: str) -> Path:
+        return self.audit_dir / "project_summaries" / f"{_slug(project)}.md"
+
+    def _project_search_text(self, project: str) -> str:
+        path = self._project_summary_path(project)
+        if not path.is_file():
+            return ""
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            return ""
+        return redact_text(text, 20_000)
+
     def source_updated_at(self) -> str:
         candidates = [self.audit_dir / name for name in ALLOWED_FILES]
         summaries = self.audit_dir / "project_summaries"
@@ -179,8 +192,11 @@ class HistoryStore:
         group = group.casefold().strip()
         value = value.casefold().strip()
         cards = []
+        project_context: dict[str, str] = {}
         for card in self._cards():
-            haystack = " ".join((card.name, card.project, card.topic, card.summary, card.open_tasks)).casefold()
+            if card.project not in project_context:
+                project_context[card.project] = self._project_search_text(card.project)
+            haystack = " ".join((card.name, card.project, card.topic, card.summary, card.open_tasks, project_context[card.project])).casefold()
             if query and query not in haystack:
                 continue
             if group and group not in card.project.casefold():
@@ -194,8 +210,9 @@ class HistoryStore:
     def project_summary(self, project: str) -> dict:
         project = project.strip()
         items = [item for item in self._cards() if item.project.casefold() == project.casefold()]
-        summary_path = self.audit_dir / "project_summaries" / f"{_slug(project)}.md"
+        summary_path = self._project_summary_path(project)
         highlights: list[str] = []
+        description = ""
         if summary_path.is_file():
             for raw_line in summary_path.read_text(encoding="utf-8", errors="replace").splitlines():
                 line = raw_line.strip()
@@ -203,18 +220,27 @@ class HistoryStore:
                     line = re.sub(r"\s+—\s+\d{4}-\d{2}-\d{2}.*$", "", line)
                     highlights.append(redact_text(line, 180))
                 elif line.startswith(("- Summary:", "- Result signal:", "- Open-task signal:")):
-                    highlights.append(redact_text(line, 260))
+                    safe_line = redact_text(line, 260)
+                    highlights.append(safe_line)
+                    if not description and line.startswith("- Summary:"):
+                        description = redact_text(line.split(":", 1)[1].strip(), 420)
                 elif line.startswith("- ") and not any(
                     marker in line.casefold()
                     for marker in ("record id", "parent/meta", "date:", "topic:", "value:")
                 ):
-                    highlights.append(redact_text(line, 220))
+                    safe_line = redact_text(line, 220)
+                    highlights.append(safe_line)
+                    if not description:
+                        description = redact_text(line[2:].strip(), 420)
                 if len(highlights) >= 12:
                     break
+        if not description:
+            description = f"Локальная группа из {len(items)} сессий."
         return {
             "project": redact_text(project, 100),
             "sessions": len(items),
             "high_value": sum(item.value.lower() == "high" for item in items),
+            "description": description,
             "open_tasks": [item.open_tasks for item in items if item.open_tasks][:8],
             "highlights": highlights,
             "read_only": True,

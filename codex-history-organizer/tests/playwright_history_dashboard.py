@@ -15,6 +15,8 @@ def main() -> int:
     parser.add_argument("--expected-projects", type=int, default=10)
     parser.add_argument("--query", default="Bitrix24")
     parser.add_argument("--expected-query-results", type=int, default=4)
+    parser.add_argument("--description-query", default="")
+    parser.add_argument("--expected-description-results", type=int, default=0)
     parser.add_argument("--project", default="Presentation video")
     args = parser.parse_args()
     errors: list[str] = []
@@ -36,15 +38,24 @@ def main() -> int:
         assert page.locator("#setup-summary").inner_text() == "Готово к работе"
         assert page.locator("#view-tech").is_hidden()
         assert page.locator('[data-view="tech"]').count() == 1
+        assert page.locator("#filters").evaluate("(el) => Boolean(el.compareDocumentPosition(document.querySelector('#project-grid')) & Node.DOCUMENT_POSITION_FOLLOWING)")
 
         page.locator("#query").fill(args.query)
         page.wait_for_timeout(150)
         assert page.locator("#session-list .session-row").count() == args.expected_query_results
 
+        if args.description_query:
+            page.locator("#query").fill(args.description_query)
+            page.wait_for_timeout(150)
+            assert page.locator("#session-list .session-row").count() == args.expected_description_results
+
         page.locator(f'[data-project="{args.project}"]').click()
-        page.wait_for_selector("#detail-panel h3", state="visible")
+        page.wait_for_selector(".detail-panel__description", state="visible")
         detail_text = page.locator("#detail-panel").inner_text()
         assert args.project in detail_text, detail_text
+        assert page.locator(".detail-panel__description").count() == 1
+        assert page.locator(".detail-panel__description").is_visible()
+        assert "описание проекта" in detail_text.casefold()
 
         page.locator('[data-view="table"]').click()
         assert page.locator("#view-table").is_visible()

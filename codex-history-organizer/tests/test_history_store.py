@@ -74,6 +74,7 @@ class HistoryStoreTests(unittest.TestCase):
         self.assertEqual(store.status()["state"], "ok")
         self.assertEqual(store.status()["sessions"], 2)
         self.assertEqual(len(store.list_sessions(query="quoted")), 1)
+        self.assertEqual(len(store.list_sessions(query="safe highlight")), 1)
         self.assertEqual(len(store.list_sessions(value="normal")), 1)
 
     def test_csv_quotes_unicode_and_project_summary(self):
@@ -82,6 +83,7 @@ class HistoryStoreTests(unittest.TestCase):
         self.assertEqual(row["name"], "Other")
         summary = store.project_summary("Demo project")
         self.assertEqual(summary["sessions"], 1)
+        self.assertIn("A safe highlight", summary["description"])
         self.assertIn("A safe highlight", " ".join(summary["highlights"]))
         self.assertNotIn("Record ID", " ".join(summary["highlights"]))
 

@@ -162,7 +162,7 @@ async function loadProject(project) {
   panel.innerHTML = `<div class="detail-empty"><span class="detail-icon">…</span><p>Загружаю карту проекта.</p></div>`;
   try {
     const data = await getJson(`/api/projects/${encodeURIComponent(project)}`);
-    panel.innerHTML = `<div class="detail-panel__header"><p class="eyebrow">Выбранное направление</p><h3>${escapeHtml(data.project)}</h3><p>Сводка построена по локальному индексу.</p></div>
+    panel.innerHTML = `<div class="detail-panel__header"><p class="eyebrow">Выбранное направление</p><h3>${escapeHtml(data.project)}</h3><p class="detail-panel__description"><strong>Описание проекта</strong>${escapeHtml(data.description || "Описание пока не подготовлено.")}</p></div>
       <div class="detail-metric"><span>Сессий</span><strong>${data.sessions}</strong></div>
       <div class="detail-metric"><span>Высокой ценности</span><strong>${data.high_value}</strong></div>
       <ul class="detail-list">${(data.highlights || []).slice(0, 6).map((item) => `<li>${escapeHtml(item.replace(/^[-# ]+/, ""))}</li>`).join("") || "<li>Краткие сведения пока не подготовлены.</li>"}</ul>`;

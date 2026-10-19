@@ -45,19 +45,15 @@
 
       <section id="view-map" class="view-panel" data-view-panel="map">
         <section class="section-heading">
-          <div><p class="eyebrow">02 / Карта</p><h2>Проекты и направления</h2></div>
-          <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
+          <div><p class="eyebrow">02 / Поиск</p><h2>Найти нужную сессию</h2></div>
+          <p class="section-note">Поиск работает по названию, теме и описанию проекта.</p>
         </section>
-        <section id="project-grid" class="project-grid" aria-live="polite"></section>
 
-        <section class="workspace">
+        <section class="workspace workspace--search-first">
           <div class="workspace-main">
-            <div class="section-heading section-heading--compact">
-              <div><p class="eyebrow">03 / Поиск</p><h2>Найти сессию</h2></div>
-              <span id="session-count" class="result-count">—</span>
-            </div>
+            <div class="search-heading"><span id="session-count" class="result-count">—</span></div>
             <form id="filters" class="filters">
-              <label class="search-field"><span class="sr-only">Поиск</span><input id="query" type="search" placeholder="Название, проект или тема" autocomplete="off" /></label>
+              <label class="search-field"><span class="sr-only">Поиск по сессиям и проектам</span><input id="query" type="search" placeholder="Название, описание проекта или тема" autocomplete="off" /></label>
               <label><span class="sr-only">Ценность</span><select id="value"><option value="">Любая ценность</option><option value="high">Высокая</option><option value="normal">Обычная</option><option value="low">Низкая</option></select></label>
               <button class="button button--quiet" type="reset">Сбросить</button>
             </form>
@@ -68,6 +64,12 @@
             <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите проект</h3><p>Здесь появится краткая карта знаний, когда вы нажмёте на карточку проекта.</p></div>
           </aside>
         </section>
+
+        <section class="section-heading section-heading--projects">
+          <div><p class="eyebrow">03 / Карта</p><h2>Проекты и направления</h2></div>
+          <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
+        </section>
+        <section id="project-grid" class="project-grid" aria-live="polite"></section>
       </section>
 
       <section id="view-table" class="view-panel" data-view-panel="table" hidden>

@@ -1,0 +1,2 @@
+record_id,archive_status,index_thread_name,proposed_name,started_at,last_event_at,project,topic,confidence,value,summary,open_tasks
+demo-session,active,Demo session,Demo project — first session,2026-01-01T09:00:00+00:00,2026-01-01T10:00:00+00:00,Demo project,Safe local dashboard,high,high,Обезличенная демонстрационная сессия для проверки интерфейса,Проверить локальный запуск

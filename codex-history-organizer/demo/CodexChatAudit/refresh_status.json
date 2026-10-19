@@ -1,0 +1,10 @@
+{
+  "state": "ok",
+  "last_success_at": "2026-01-01T10:00:00+00:00",
+  "last_attempt_at": "2026-01-01T10:00:00+00:00",
+  "last_error": "",
+  "sessions": 1,
+  "source_unchanged": true,
+  "refresh_interval_minutes": 15,
+  "read_only": true
+}

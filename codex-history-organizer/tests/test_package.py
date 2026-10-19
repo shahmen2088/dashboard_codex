@@ -26,9 +26,23 @@ class PackageStructureTests(unittest.TestCase):
             ROOT / "README.md",
             ROOT / "maintenance" / "refresh_audit.py",
             ROOT / "maintenance" / "install_refresh_task.ps1",
+            ROOT / "demo" / "CodexChatAudit" / "inventory.csv",
+            ROOT / "demo" / "CodexChatAudit" / "actions.csv",
+            ROOT / "demo" / "CodexChatAudit" / "projects.md",
+            ROOT / "demo" / "CodexChatAudit" / "project_summaries" / "demo-project.md",
+            ROOT / "demo" / "CodexChatAudit" / "refresh_status.json",
         ]
         for path in required:
             self.assertTrue(path.is_file(), path)
+
+    def test_demo_export_is_sanitized_and_ready(self):
+        demo = ROOT / "demo" / "CodexChatAudit"
+        inventory = (demo / "inventory.csv").read_text(encoding="utf-8")
+        for forbidden in ("C:\\Users\\", "/home/", "sk-", "Bearer ", "auth.json"):
+            self.assertNotIn(forbidden.casefold(), inventory.casefold())
+        status = json.loads((demo / "refresh_status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "ok")
+        self.assertEqual(status["sessions"], 1)
 
     def test_package_does_not_reference_credential_files(self):
         text_extensions = {".json", ".md", ".py", ".txt"}

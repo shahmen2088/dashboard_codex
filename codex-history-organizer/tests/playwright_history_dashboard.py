@@ -29,6 +29,7 @@ def main() -> int:
         page.goto(args.url, wait_until="networkidle")
 
         assert page.title() == "Карта истории Codex"
+        assert page.locator(".hero .eyebrow").inner_text().casefold() == "органайзер истории codex"
         assert int(page.locator("#stat-sessions").inner_text()) > 0
         assert page.locator(".project-card").count() == args.expected_projects
         assert page.locator("#chat-list .chat-row").count() > 0
@@ -65,6 +66,7 @@ def main() -> int:
         page.locator('[data-view="board"]').click()
         assert page.locator("#view-board").is_visible()
         assert page.locator(".board-column").count() == 3
+        assert "уровень: высокий" in page.locator("#view-board").inner_text()
 
         page.locator('[data-view="timeline"]').click()
         assert page.locator("#view-timeline").is_visible()
@@ -73,6 +75,7 @@ def main() -> int:
         page.locator('[data-view="graph"]').click()
         assert page.locator("#view-graph").is_visible()
         assert page.locator(".graph-node").count() == args.expected_projects
+        assert "История" in page.locator("#history-graph").text_content()
 
         page.locator('[data-view="tech"]').click()
         assert page.locator("#view-tech").is_visible()

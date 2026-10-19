@@ -105,7 +105,7 @@ function renderTable(sessions) {
 
 function renderBoard(sessions) {
   const lanes = [
-    { key: "high", title: "Ценные сигналы", note: "value: high", items: sessions.filter((session) => session.value === "high") },
+    { key: "high", title: "Ценные сигналы", note: "уровень: высокий", items: sessions.filter((session) => session.value === "high") },
     { key: "review", title: "Нужно проверить", note: "не финальное решение", items: sessions.filter((session) => session.value !== "high" && (session.confidence !== "high" || session.action !== "keep_and_tag")) },
   ];
   const assigned = new Set(lanes.flatMap((lane) => lane.items.map((session) => session.record_id)));
@@ -135,7 +135,7 @@ function renderGraph(groups) {
   });
   const shorten = (value) => value.length > 24 ? `${value.slice(0, 23)}…` : value;
   svg.innerHTML = `<g class="graph-links">${nodes.map((node) => `<line x1="${center.x}" y1="${center.y}" x2="${node.x}" y2="${node.y}"></line>`).join("")}</g>
-    <g class="graph-center"><circle cx="${center.x}" cy="${center.y}" r="70"></circle><text x="${center.x}" y="${center.y - 5}" text-anchor="middle">Codex</text><text x="${center.x}" y="${center.y + 18}" text-anchor="middle">History</text></g>
+    <g class="graph-center"><circle cx="${center.x}" cy="${center.y}" r="70"></circle><text x="${center.x}" y="${center.y - 5}" text-anchor="middle">Codex</text><text x="${center.x}" y="${center.y + 18}" text-anchor="middle">История</text></g>
     <g class="graph-nodes">${nodes.map((node) => `<g class="graph-node" tabindex="0"><circle cx="${node.x}" cy="${node.y}" r="${Math.max(25, Math.min(48, 24 + node.sessions * 1.6))}"></circle><text x="${node.x}" y="${node.y - 5}" text-anchor="middle">${escapeHtml(shorten(node.name))}</text><text class="graph-node__count" x="${node.x}" y="${node.y + 17}" text-anchor="middle">${node.sessions} сесс.</text></g>`).join("")}</g>`;
 }
 

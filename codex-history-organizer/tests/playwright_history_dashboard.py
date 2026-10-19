@@ -33,7 +33,7 @@ def main() -> int:
         assert int(page.locator("#stat-sessions").inner_text()) > 0
         assert page.locator("#project-grid").count() == 0
         assert page.locator("#chat-list .chat-row").count() > 0
-        assert page.locator(".chat-row__locator").count() > 0
+        assert page.locator(".chat-row__locator").count() == 0
         assert page.locator("#refresh-interval").input_value() == "60"
         assert "Источник обновлён" in page.locator("#freshness").inner_text()
         assert page.locator("#setup-steps .setup-step").count() == 4
@@ -63,6 +63,8 @@ def main() -> int:
         assert selected_project in detail_text, detail_text
         assert page.locator(".detail-panel__description").count() == 1
         assert page.locator(".detail-panel__description").is_visible()
+        assert page.locator(".detail-instruction").count() == 1
+        assert "как найти этот чат в chatgpt" in page.locator(".detail-instruction").inner_text().casefold()
         assert "описание проекта" in detail_text.casefold()
 
         page.locator('[data-view="table"]').click()

@@ -1,4 +1,4 @@
-const state = { overview: null, chats: [], allSessions: [], selectedProject: "", selectedChatTitle: "", activeView: "map", refreshTimer: null, refreshing: false };
+const state = { overview: null, chats: [], allSessions: [], selectedProject: "", selectedChatTitle: "", selectedChatLocator: "", selectedChatUrl: "", activeView: "map", refreshTimer: null, refreshing: false };
 
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -61,18 +61,14 @@ function renderChats(chats) {
     $("#chat-list").innerHTML = `<div class="empty-state">Чаты не найдены. Попробуйте изменить запрос или открыть другой проект.</div>`;
     return;
   }
-  $("#chat-list").innerHTML = chats.map((chat) => `<article class="chat-row" data-chat-project="${escapeHtml(chat.project || "")}" data-chat-title="${escapeHtml(chat.title || "Без названия")}" tabindex="0" role="button" aria-label="Открыть сведения о чате ${escapeHtml(chat.title || "Без названия")}">
+  $("#chat-list").innerHTML = chats.map((chat) => `<article class="chat-row" data-chat-project="${escapeHtml(chat.project || "")}" data-chat-title="${escapeHtml(chat.title || "Без названия")}" data-chat-locator="${escapeHtml(chat.chat_locator || "")}" data-chat-url="${escapeHtml(chat.chat_url || "")}" tabindex="0" role="button" aria-label="Открыть сведения о чате ${escapeHtml(chat.title || "Без названия")}">
     <div class="chat-row__main"><strong>${escapeHtml(chat.title || "Без названия")}</strong><small>${escapeHtml(chat.project || "Без проекта")}</small></div>
     <div class="chat-row__context"><span>${escapeHtml((chat.topics || []).join(" · ") || "Тема не указана")}</span><small>${chat.sessions} связанных записей · обновлён ${formatDate(chat.last_event_at)}</small></div>
     <span class="session-row__status" data-value="${escapeHtml(chat.value)}">${escapeHtml(chat.value || "не указано")}</span>
-    <div class="chat-row__action">${chat.chat_url ? `<a class="chat-row__open" href="${escapeHtml(chat.chat_url)}" target="_blank" rel="noopener noreferrer">Открыть чат в ChatGPT</a>` : `<small class="chat-row__locator"><strong>Как найти в ChatGPT</strong>${escapeHtml(chat.chat_locator || "Откройте проект и найдите чат по названию.")}</small>`}</div>
   </article>`).join("");
   document.querySelectorAll("[data-chat-project]").forEach((row) => {
-    const openDetails = () => loadProject(row.dataset.chatProject, row.dataset.chatTitle);
-    row.addEventListener("click", (event) => {
-      if (event.target.closest("a")) return;
-      openDetails();
-    });
+    const openDetails = () => loadProject(row.dataset.chatProject, row.dataset.chatTitle, row.dataset.chatLocator, row.dataset.chatUrl);
+    row.addEventListener("click", openDetails);
     row.addEventListener("keydown", (event) => {
       if (event.key === "Enter" || event.key === " ") {
         event.preventDefault();
@@ -151,16 +147,20 @@ async function loadChats() {
   }
 }
 
-async function loadProject(project, chatTitle = "") {
+async function loadProject(project, chatTitle = "", chatLocator = "", chatUrl = "") {
   state.selectedProject = project;
   state.selectedChatTitle = chatTitle;
+  state.selectedChatLocator = chatLocator;
+  state.selectedChatUrl = chatUrl;
   const panel = $("#detail-panel");
   panel.innerHTML = `<div class="detail-empty"><span class="detail-icon">…</span><p>Загружаю описание проекта.</p></div>`;
   try {
     const data = await getJson(`/api/projects/${encodeURIComponent(project)}`);
+    const chatLink = chatUrl ? `<a class="detail-panel__open" href="${escapeHtml(chatUrl)}" target="_blank" rel="noopener noreferrer">Открыть чат в ChatGPT</a>` : "";
     panel.innerHTML = `<div class="detail-panel__header"><p class="eyebrow">Выбранный чат</p><h3>${escapeHtml(chatTitle || "Без названия")}</h3><p class="detail-panel__project">Проект: ${escapeHtml(data.project)}</p><p class="detail-panel__description"><strong>Описание проекта</strong>${escapeHtml(data.description || "Описание пока не подготовлено.")}</p></div>
       <div class="detail-metric"><span>Сессий</span><strong>${data.sessions}</strong></div>
       <div class="detail-metric"><span>Высокой ценности</span><strong>${data.high_value}</strong></div>
+      <div class="detail-instruction"><strong>Как найти этот чат в ChatGPT</strong><p>${escapeHtml(chatLocator || `Откройте проект «${data.project}» и найдите чат «${chatTitle || "Без названия"}».`)}</p>${chatLink}</div>
       <ul class="detail-list">${(data.highlights || []).slice(0, 6).map((item) => `<li>${escapeHtml(item.replace(/^[-# ]+/, ""))}</li>`).join("") || "<li>Краткие сведения пока не подготовлены.</li>"}</ul>`;
   } catch (error) {
     panel.innerHTML = `<div class="detail-empty"><span class="detail-icon">!</span><h3>Не удалось открыть проект</h3><p>${escapeHtml(error.message)}</p></div>`;
@@ -177,7 +177,7 @@ async function refreshDashboard({ silent = false } = {}) {
     state.allSessions = await getJson("/api/sessions?limit=500");
     renderAlternativeViews();
     await loadChats();
-    if (state.selectedProject) await loadProject(state.selectedProject, state.selectedChatTitle);
+    if (state.selectedProject) await loadProject(state.selectedProject, state.selectedChatTitle, state.selectedChatLocator, state.selectedChatUrl);
     renderFreshness(state.overview);
   } catch (error) {
     if (!silent) $("#chat-list").innerHTML = `<div class="empty-state">Данные пока недоступны: ${escapeHtml(error.message)}</div>`;

@@ -53,6 +53,14 @@ class DashboardHandler(BaseHTTPRequestHandler):
                     limit=int(query.get("limit", [100])[0]),
                 ))
                 return
+            if path == "/api/chats":
+                self._json(self.store.list_chats(
+                    query=query.get("q", [""])[0],
+                    group=query.get("group", [""])[0],
+                    value=query.get("value", [""])[0],
+                    limit=int(query.get("limit", [100])[0]),
+                ))
+                return
             if path.startswith("/api/projects/"):
                 project = unquote(path.removeprefix("/api/projects/"))
                 self._json(self.store.project_summary(project))

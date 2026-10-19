@@ -79,6 +79,10 @@ class DashboardServerTests(unittest.TestCase):
         self.assertEqual(self.get_json("/api/overview")["sessions"], 1)
         self.assertEqual(self.get_json("/api/status")["audit_ready"], True)
         self.assertEqual(len(self.get_json("/api/sessions?q=demo")), 1)
+        chats = self.get_json("/api/chats?q=demo")
+        self.assertEqual(len(chats), 1)
+        self.assertEqual(chats[0]["chat_url"], "")
+        self.assertIn("Demo project", chats[0]["chat_locator"])
         project = self.get_json("/api/projects/" + quote("Demo project"))
         self.assertEqual(project["project"], "Demo project")
 

@@ -8,6 +8,7 @@ from collections import Counter, defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
+from urllib.parse import urlparse
 
 from .schemas import SessionCard
 
@@ -15,6 +16,7 @@ from .schemas import SessionCard
 ALLOWED_FILES = frozenset({"inventory.csv", "actions.csv", "projects.md"})
 STATUS_FILENAME = "refresh_status.json"
 MAX_TEXT = 320
+ALLOWED_CHAT_HOSTS = frozenset({"chatgpt.com", "chat.openai.com"})
 
 
 def default_audit_dir() -> Path:
@@ -61,6 +63,18 @@ def _slug(value: str) -> str:
     value = value.lower().replace("ё", "е")
     value = re.sub(r"[^a-zа-я0-9]+", "-", value)
     return value.strip("-")
+
+
+def _safe_chat_url(value: object) -> str:
+    candidate = str(value or "").strip()
+    parsed = urlparse(candidate)
+    if (
+        parsed.scheme == "https"
+        and parsed.netloc.casefold() in ALLOWED_CHAT_HOSTS
+        and parsed.path.startswith("/c/")
+    ):
+        return candidate[:500]
+    return ""
 
 
 class HistoryStore:
@@ -206,6 +220,77 @@ class HistoryStore:
             cards.append(card.as_dict())
         cards.sort(key=lambda item: (item["last_event_at"], item["name"]), reverse=True)
         return cards[: max(1, min(int(limit), 500))]
+
+    def list_chats(self, query: str = "", group: str = "", value: str = "", limit: int = 100) -> list[dict]:
+        """Return one navigable result per indexed chat and project."""
+        query = query.casefold().strip()
+        group = group.casefold().strip()
+        value = value.casefold().strip()
+        actions = self._actions()
+        project_context: dict[str, str] = {}
+        grouped: dict[tuple[str, str], dict] = {}
+
+        for row in self._inventory():
+            card = self._card(row, actions.get(row.get("record_id", "")))
+            if card.project not in project_context:
+                project_context[card.project] = self._project_search_text(card.project)
+            haystack = " ".join((card.name, card.project, card.topic, card.summary, card.open_tasks, project_context[card.project])).casefold()
+            matches = not query or query in haystack
+            if group and group not in card.project.casefold():
+                matches = False
+            if value and value != card.value.casefold():
+                matches = False
+            chat_id = row.get("session_meta_id", "").strip() or row.get("record_id", "").strip()
+            key = (card.project.casefold(), chat_id)
+            entry = grouped.setdefault(key, {"project": card.project, "chat_id": chat_id, "rows": [], "cards": [], "matches": False})
+            entry["rows"].append(row)
+            entry["cards"].append(card)
+            entry["matches"] = entry["matches"] or matches
+
+        results = []
+        value_rank = {"low": 0, "normal": 1, "high": 2}
+        for entry in grouped.values():
+            if not entry["matches"]:
+                continue
+            cards = entry["cards"]
+            rows = entry["rows"]
+            latest_index = max(range(len(cards)), key=lambda index: (cards[index].last_event_at, cards[index].started_at))
+            latest_card = cards[latest_index]
+            latest_row = rows[latest_index]
+            title = redact_text(_first_nonempty(latest_row, "index_thread_name", "proposed_name") or "Без названия", 160)
+            topics = []
+            for card in cards:
+                if card.topic and card.topic not in topics:
+                    topics.append(card.topic)
+            value_name = max((card.value.casefold() for card in cards), key=lambda item: value_rank.get(item, 0), default="")
+            chat_url = ""
+            for row in rows:
+                for field in ("chat_url", "conversation_url", "thread_url", "url"):
+                    chat_url = _safe_chat_url(row.get(field, ""))
+                    if chat_url:
+                        break
+                if chat_url:
+                    break
+            locator = (
+                f"В ChatGPT откройте проект «{entry['project']}» и найдите чат «{title}». "
+                f"Если название изменено, проверьте локальный ID: {redact_text(entry['chat_id'], 80)}."
+            )
+            results.append({
+                "chat_id": redact_text(entry["chat_id"], 80),
+                "title": title,
+                "project": entry["project"],
+                "sessions": len(cards),
+                "topics": topics,
+                "last_event_at": latest_card.last_event_at or latest_card.started_at,
+                "value": value_name,
+                "confidence": "high" if any(card.confidence.casefold() == "high" for card in cards) else (latest_card.confidence or ""),
+                "summary": latest_card.summary,
+                "chat_url": chat_url,
+                "chat_locator": locator if not chat_url else "",
+                "read_only": True,
+            })
+        results.sort(key=lambda item: (item["last_event_at"], item["title"]), reverse=True)
+        return results[: max(1, min(int(limit), 500))]
 
     def project_summary(self, project: str) -> dict:
         project = project.strip()

@@ -16,6 +16,7 @@ class HistoryStoreTests(unittest.TestCase):
         inventory = [
             {
                 "record_id": "one",
+                "session_meta_id": "chat-one",
                 "archive_status": "active",
                 "index_thread_name": "Quoted, session",
                 "proposed_name": "Quoted, session",
@@ -30,6 +31,7 @@ class HistoryStoreTests(unittest.TestCase):
             },
             {
                 "record_id": "two",
+                "session_meta_id": "chat-two",
                 "archive_status": "archived",
                 "index_thread_name": "Other",
                 "proposed_name": "Other",
@@ -41,6 +43,21 @@ class HistoryStoreTests(unittest.TestCase):
                 "value": "normal",
                 "summary": "Old session",
                 "open_tasks": "Не определено по локальным событиям",
+            },
+            {
+                "record_id": "three",
+                "session_meta_id": "chat-one",
+                "archive_status": "active",
+                "index_thread_name": "Follow-up",
+                "proposed_name": "Follow-up",
+                "started_at": "2026-01-03T00:00:00Z",
+                "last_event_at": "2026-01-04T00:00:00Z",
+                "project": "Demo project",
+                "topic": "Follow-up",
+                "confidence": "high",
+                "value": "high",
+                "summary": "Follow-up in the same chat",
+                "open_tasks": "",
             },
         ]
         with (self.root / "inventory.csv").open("w", encoding="utf-8", newline="") as handle:
@@ -57,7 +74,7 @@ class HistoryStoreTests(unittest.TestCase):
             "## Demo project\n- A safe highlight\n", encoding="utf-8"
         )
         (self.root / "refresh_status.json").write_text(
-            '{"state":"ok","last_success_at":"2026-01-02T00:00:00+03:00","sessions":2}',
+            '{"state":"ok","last_success_at":"2026-01-02T00:00:00+03:00","sessions":3}',
             encoding="utf-8",
         )
 
@@ -67,22 +84,33 @@ class HistoryStoreTests(unittest.TestCase):
     def test_overview_and_filters(self):
         store = HistoryStore(self.root)
         overview = store.overview()
-        self.assertEqual(overview["sessions"], 2)
+        self.assertEqual(overview["sessions"], 3)
         self.assertEqual(overview["groups"], 2)
         self.assertTrue(overview["read_only"])
         self.assertTrue(overview["last_updated"])
         self.assertEqual(store.status()["state"], "ok")
-        self.assertEqual(store.status()["sessions"], 2)
+        self.assertEqual(store.status()["sessions"], 3)
         self.assertEqual(len(store.list_sessions(query="quoted")), 1)
-        self.assertEqual(len(store.list_sessions(query="safe highlight")), 1)
+        self.assertEqual(len(store.list_sessions(query="safe highlight")), 2)
         self.assertEqual(len(store.list_sessions(value="normal")), 1)
+
+    def test_list_chats_groups_rollouts_and_returns_locator(self):
+        store = HistoryStore(self.root)
+        chats = store.list_chats()
+        self.assertEqual(len(chats), 2)
+        demo = next(chat for chat in chats if chat["project"] == "Demo project")
+        self.assertEqual(demo["sessions"], 2)
+        self.assertEqual(demo["chat_url"], "")
+        self.assertIn("Follow-up", demo["chat_locator"])
+        self.assertIn("Demo project", demo["chat_locator"])
+        self.assertEqual(len(store.list_chats(query="safe highlight")), 1)
 
     def test_csv_quotes_unicode_and_project_summary(self):
         store = HistoryStore(self.root)
         row = next(row for row in store.list_sessions() if row["name"] == "Other")
         self.assertEqual(row["name"], "Other")
         summary = store.project_summary("Demo project")
-        self.assertEqual(summary["sessions"], 1)
+        self.assertEqual(summary["sessions"], 2)
         self.assertIn("A safe highlight", summary["description"])
         self.assertIn("A safe highlight", " ".join(summary["highlights"]))
         self.assertNotIn("Record ID", " ".join(summary["highlights"]))

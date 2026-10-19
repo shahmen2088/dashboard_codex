@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07101f" />
+    <title>Карта истории Codex</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Codex History Organizer</p>
+          <h1>История, которую можно понять за минуту.</h1>
+          <p class="lede">Проекты, важные решения и незакрытые задачи собраны в одну спокойную карту.</p>
+        </div>
+        <div class="safety-badge" aria-label="Режим только чтение">
+          <span class="safety-dot"></span>
+          <span><strong>Только чтение</strong><small>история не изменяется</small></span>
+        </div>
+      </header>
+
+      <section class="stats" aria-label="Обзор истории">
+        <article class="stat-card stat-card--accent"><span>Сессий</span><strong id="stat-sessions">—</strong><small>в подготовленном индексе</small></article>
+        <article class="stat-card"><span>Групп</span><strong id="stat-groups">—</strong><small>проектных направлений</small></article>
+        <article class="stat-card"><span>Ценных</span><strong id="stat-high-value">—</strong><small>с высокой полезностью</small></article>
+        <article class="stat-card stat-card--warn"><span>Внимание</span><strong id="stat-attention">—</strong><small>нужно проверить вручную</small></article>
+      </section>
+
+      <section class="section-heading">
+        <div><p class="eyebrow">01 / Карта</p><h2>Проекты и направления</h2></div>
+        <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
+      </section>
+      <section id="project-grid" class="project-grid" aria-live="polite"></section>
+
+      <section class="workspace">
+        <div class="workspace-main">
+          <div class="section-heading section-heading--compact">
+            <div><p class="eyebrow">02 / Поиск</p><h2>Найти сессию</h2></div>
+            <span id="session-count" class="result-count">—</span>
+          </div>
+          <form id="filters" class="filters">
+            <label class="search-field"><span class="sr-only">Поиск</span><input id="query" type="search" placeholder="Название, проект или тема" autocomplete="off" /></label>
+            <label><span class="sr-only">Ценность</span><select id="value"><option value="">Любая ценность</option><option value="high">Высокая</option><option value="normal">Обычная</option><option value="low">Низкая</option></select></label>
+            <button class="button button--quiet" type="reset">Сбросить</button>
+          </form>
+          <div id="session-list" class="session-list" aria-live="polite"></div>
+        </div>
+
+        <aside id="detail-panel" class="detail-panel" aria-live="polite">
+          <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите проект</h3><p>Здесь появится краткая карта знаний, когда вы нажмёте на карточку проекта.</p></div>
+        </aside>
+      </section>
+
+      <footer class="footer"><span>Источник: локальный экспорт CodexChatAudit</span><span>Данные не отправляются наружу</span></footer>
+    </main>
+    <script src="/app.js" defer></script>
+  </body>
+</html>

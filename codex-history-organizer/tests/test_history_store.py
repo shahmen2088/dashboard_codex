@@ -76,13 +76,16 @@ class HistoryStoreTests(unittest.TestCase):
         summary = store.project_summary("Demo project")
         self.assertEqual(summary["sessions"], 1)
         self.assertIn("A safe highlight", " ".join(summary["highlights"]))
+        self.assertNotIn("Record ID", " ".join(summary["highlights"]))
 
     def test_secret_and_path_redaction(self):
-        text = "token=sk-abcdefghijklmnop Bearer abc C:\\Users\\name\\file.txt"
+        text = "token=sk-abcdefghijklmnop Bearer abc C:\\Users\\name\\file.txt [LOCAL_PATH:demo.zip] chatgpt-conversation://demo"
         result = redact_text(text)
         self.assertNotIn("sk-abcdefghijklmnop", result)
         self.assertNotIn("abc", result)
         self.assertNotIn("C:\\Users", result)
+        self.assertNotIn("LOCAL_PATH:", result)
+        self.assertNotIn("chatgpt-conversation://", result)
 
     def test_missing_files_are_empty_and_safe(self):
         empty = Path(self.temp.name) / "empty"

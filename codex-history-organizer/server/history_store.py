@@ -30,6 +30,8 @@ def redact_text(value: object, limit: int = MAX_TEXT) -> str:
         text,
     )
     text = re.sub(r"(?i)sk-[a-z0-9_-]{12,}", "[скрыто]", text)
+    text = re.sub(r"\[LOCAL_PATH:[^\]]+\]", "[локальный файл]", text, flags=re.IGNORECASE)
+    text = re.sub(r"chatgpt-conversation://\S+", "[связанная сессия]", text, flags=re.IGNORECASE)
     text = re.sub(r"(?:[A-Za-z]:\\|\\\\)[^\s,;]+", "[локальный путь]", text)
     text = re.sub(r"\s+", " ", text).strip()
     if len(text) > limit:
@@ -147,8 +149,16 @@ class HistoryStore:
         if summary_path.is_file():
             for raw_line in summary_path.read_text(encoding="utf-8", errors="replace").splitlines():
                 line = raw_line.strip()
-                if line.startswith("-") or line.startswith("##"):
+                if line.startswith("###"):
+                    line = re.sub(r"\s+—\s+\d{4}-\d{2}-\d{2}.*$", "", line)
+                    highlights.append(redact_text(line, 180))
+                elif line.startswith(("- Summary:", "- Result signal:", "- Open-task signal:")):
                     highlights.append(redact_text(line, 260))
+                elif line.startswith("- ") and not any(
+                    marker in line.casefold()
+                    for marker in ("record id", "parent/meta", "date:", "topic:", "value:")
+                ):
+                    highlights.append(redact_text(line, 220))
                 if len(highlights) >= 12:
                     break
         return {

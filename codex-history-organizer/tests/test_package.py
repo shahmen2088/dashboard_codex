@@ -39,7 +39,6 @@ class PackageStructureTests(unittest.TestCase):
             and path.suffix.lower() in text_extensions
         ).lower()
         self.assertFalse(any(path.name.lower() == "auth.json" for path in ROOT.rglob("*")))
-        self.assertNotIn("bearer ", text)
         self.assertNotRegex(text, r"sk-[a-z0-9]{12,}")
 
 

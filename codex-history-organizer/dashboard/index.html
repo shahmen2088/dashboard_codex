@@ -43,6 +43,18 @@
         <article class="stat-card stat-card--warn"><span>Внимание</span><strong id="stat-attention">—</strong><small>нужно проверить вручную</small></article>
       </section>
 
+      <details id="setup-panel" class="setup-panel" open>
+        <summary><span><span class="eyebrow">02 / Подключение</span><strong>Проверить готовность системы</strong></span><span id="setup-summary" class="setup-summary">Проверяю…</span></summary>
+        <div class="setup-body">
+          <div id="setup-steps" class="setup-steps" aria-live="polite"></div>
+          <div class="setup-footer">
+            <div><span class="eyebrow">Команда для планировщика Windows</span><code id="setup-command">powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\maintenance\install_refresh_task.ps1 -EveryMinutes 15</code></div>
+            <button id="setup-copy" class="button button--quiet" type="button">Скопировать</button>
+            <span id="setup-copy-status" class="setup-copy-status" aria-live="polite"></span>
+          </div>
+        </div>
+      </details>
+
       <section class="section-heading view-heading">
         <div><p class="eyebrow">01 / Представления</p><h2>Историю можно читать под задачу</h2></div>
         <p class="section-note">Один локальный индекс — пять способов увидеть главное.</p>

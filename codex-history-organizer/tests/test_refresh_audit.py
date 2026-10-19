@@ -31,6 +31,8 @@ class RefreshAuditTests(unittest.TestCase):
             self.assertEqual(kwargs["env"]["CODEX_HOME"], str(codex_home))
             self.assertEqual(kwargs["env"]["CODEX_AUDIT_OUT"], str(audit_dir))
             self.assertEqual(kwargs["cwd"], str(generator.parent))
+            status = (audit_dir / "refresh_status.json").read_text(encoding="utf-8")
+            self.assertIn('"state": "ok"', status)
 
     def test_refresh_rejects_missing_source(self):
         with tempfile.TemporaryDirectory() as temp:

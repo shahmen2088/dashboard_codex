@@ -32,6 +32,30 @@ function renderFreshness(overview, error = false) {
   dot.className = "refresh-dot refresh-dot--ready";
 }
 
+function formatDateTime(value) {
+  if (!value) return "время не указано";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "время не указано" : new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(date);
+}
+
+function renderSetup(status) {
+  const auditReady = status.audit_ready;
+  const refreshReady = status.state === "ok";
+  const steps = [
+    { label: "Панель плагина доступна", note: "локальный сервер отвечает", state: "ready" },
+    { label: "Экспорт CodexChatAudit найден", note: auditReady ? `${status.sessions} сессий в индексе` : "нужен первый запуск сборщика", state: auditReady ? "ready" : "attention" },
+    { label: "Последнее обновление источника", note: refreshReady ? formatDateTime(status.last_success_at) : "сборщик ещё не отработал успешно", state: refreshReady ? "ready" : "attention" },
+    { label: "Планировщик Windows", note: "проверяется отдельно командой ниже", state: "manual" },
+  ];
+  $("#setup-steps").innerHTML = steps.map((step, index) => `<div class="setup-step setup-step--${step.state}"><span class="setup-step__index">0${index + 1}</span><div><strong>${step.label}</strong><small>${step.note}</small></div><span class="setup-step__state">${step.state === "ready" ? "готово" : step.state === "manual" ? "проверить" : "внимание"}</span></div>`).join("");
+  const ok = auditReady && refreshReady;
+  $("#setup-summary").textContent = ok ? "Готово к работе" : "Нужна проверка";
+  $("#setup-summary").className = `setup-summary ${ok ? "setup-summary--ready" : "setup-summary--attention"}`;
+  if (status.last_error) {
+    $("#setup-steps").insertAdjacentHTML("beforeend", `<p class="setup-error">Последняя ошибка: ${escapeHtml(status.last_error)}</p>`);
+  }
+}
+
 function renderProjects(groups) {
   const total = Math.max(...groups.map((group) => group.sessions), 1);
   $("#project-grid").innerHTML = groups.map((group, index) => {
@@ -152,6 +176,7 @@ async function refreshDashboard({ silent = false } = {}) {
   state.refreshing = true;
   try {
     state.overview = await getJson("/api/overview");
+    renderSetup(await getJson("/api/status"));
     renderStats(state.overview);
     renderProjects(state.overview.groups_data || []);
     state.allSessions = await getJson("/api/sessions?limit=500");
@@ -202,9 +227,23 @@ function configureAutoRefresh() {
   schedule();
 }
 
+function configureSetup() {
+  $("#setup-copy").addEventListener("click", async () => {
+    const command = $("#setup-command").textContent;
+    try {
+      await navigator.clipboard.writeText(command);
+      $("#setup-copy-status").textContent = "Скопировано";
+    } catch (error) {
+      $("#setup-copy-status").textContent = "Скопируйте команду вручную";
+    }
+    setTimeout(() => { $("#setup-copy-status").textContent = ""; }, 2400);
+  });
+}
+
 async function init() {
   configureViews();
   configureAutoRefresh();
+  configureSetup();
   await refreshDashboard();
   $("#query").addEventListener("input", loadSessions);
   $("#value").addEventListener("change", loadSessions);

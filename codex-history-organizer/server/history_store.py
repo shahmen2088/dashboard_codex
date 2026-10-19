@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import os
 import re
 from collections import Counter, defaultdict
@@ -12,6 +13,7 @@ from .schemas import SessionCard
 
 
 ALLOWED_FILES = frozenset({"inventory.csv", "actions.csv", "projects.md"})
+STATUS_FILENAME = "refresh_status.json"
 MAX_TEXT = 320
 
 
@@ -103,6 +105,42 @@ class HistoryStore:
         if not timestamps:
             return ""
         return datetime.fromtimestamp(max(timestamps)).astimezone().isoformat(timespec="seconds")
+
+    def status(self) -> dict:
+        path = self.audit_dir / STATUS_FILENAME
+        value: dict = {}
+        if path.is_file() and path.stat().st_size <= 256_000:
+            try:
+                loaded = json.loads(path.read_text(encoding="utf-8"))
+                if isinstance(loaded, dict):
+                    value = loaded
+            except (OSError, json.JSONDecodeError):
+                value = {}
+        required_files = {name: (self.audit_dir / name).is_file() for name in sorted(ALLOWED_FILES)}
+        last_success = redact_text(value.get("last_success_at", ""), 60)
+        last_attempt = redact_text(value.get("last_attempt_at", ""), 60)
+        last_error = redact_text(value.get("last_error", ""), 80)
+        try:
+            sessions = int(value.get("sessions", len(self._inventory())) or 0)
+        except (TypeError, ValueError):
+            sessions = len(self._inventory())
+        try:
+            interval = int(value.get("refresh_interval_minutes", 15) or 15)
+        except (TypeError, ValueError):
+            interval = 15
+        return {
+            "state": redact_text(value.get("state", "not_run"), 20),
+            "audit_ready": required_files.get("inventory.csv", False),
+            "required_files": required_files,
+            "last_updated": self.source_updated_at(),
+            "last_success_at": last_success,
+            "last_attempt_at": last_attempt,
+            "last_error": last_error,
+            "sessions": sessions,
+            "source_unchanged": value.get("source_unchanged"),
+            "refresh_interval_minutes": interval,
+            "read_only": True,
+        }
 
     def overview(self) -> dict:
         cards = self._cards()

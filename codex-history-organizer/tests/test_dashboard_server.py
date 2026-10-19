@@ -77,6 +77,7 @@ class DashboardServerTests(unittest.TestCase):
             html = response.read().decode("utf-8")
         self.assertIn("Карта истории Codex", html)
         self.assertEqual(self.get_json("/api/overview")["sessions"], 1)
+        self.assertEqual(self.get_json("/api/status")["audit_ready"], True)
         self.assertEqual(len(self.get_json("/api/sessions?q=demo")), 1)
         project = self.get_json("/api/projects/" + quote("Demo project"))
         self.assertEqual(project["project"], "Demo project")

@@ -28,6 +28,8 @@ def main() -> int:
         assert page.locator("#session-list .session-row").count() > 0
         assert page.locator("#refresh-interval").input_value() == "60"
         assert "Источник обновлён" in page.locator("#freshness").inner_text()
+        assert page.locator("#setup-steps .setup-step").count() == 4
+        assert page.locator("#setup-summary").inner_text() == "Готово к работе"
 
         page.locator("#query").fill("Bitrix24")
         page.wait_for_timeout(150)

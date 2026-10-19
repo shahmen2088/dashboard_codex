@@ -56,6 +56,10 @@ class HistoryStoreTests(unittest.TestCase):
         (self.root / "project_summaries" / "demo-project.md").write_text(
             "## Demo project\n- A safe highlight\n", encoding="utf-8"
         )
+        (self.root / "refresh_status.json").write_text(
+            '{"state":"ok","last_success_at":"2026-01-02T00:00:00+03:00","sessions":2}',
+            encoding="utf-8",
+        )
 
     def tearDown(self):
         self.temp.cleanup()
@@ -67,6 +71,8 @@ class HistoryStoreTests(unittest.TestCase):
         self.assertEqual(overview["groups"], 2)
         self.assertTrue(overview["read_only"])
         self.assertTrue(overview["last_updated"])
+        self.assertEqual(store.status()["state"], "ok")
+        self.assertEqual(store.status()["sessions"], 2)
         self.assertEqual(len(store.list_sessions(query="quoted")), 1)
         self.assertEqual(len(store.list_sessions(value="normal")), 1)
 

@@ -42,6 +42,9 @@ class DashboardHandler(BaseHTTPRequestHandler):
             if path == "/api/overview":
                 self._json(self.store.overview())
                 return
+            if path == "/api/status":
+                self._json(self.store.status())
+                return
             if path == "/api/sessions":
                 self._json(self.store.list_sessions(
                     query=query.get("q", [""])[0],

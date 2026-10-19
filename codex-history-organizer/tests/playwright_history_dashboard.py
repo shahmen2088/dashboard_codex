@@ -34,6 +34,8 @@ def main() -> int:
         assert "Источник обновлён" in page.locator("#freshness").inner_text()
         assert page.locator("#setup-steps .setup-step").count() == 4
         assert page.locator("#setup-summary").inner_text() == "Готово к работе"
+        assert page.locator("#view-tech").is_hidden()
+        assert page.locator('[data-view="tech"]').count() == 1
 
         page.locator("#query").fill(args.query)
         page.wait_for_timeout(150)
@@ -59,7 +61,20 @@ def main() -> int:
         page.locator('[data-view="graph"]').click()
         assert page.locator("#view-graph").is_visible()
         assert page.locator(".graph-node").count() == args.expected_projects
+
+        page.locator('[data-view="tech"]').click()
+        assert page.locator("#view-tech").is_visible()
+        assert page.locator("#view-tech .technical-card").is_visible()
+        assert page.locator("#setup-panel").is_visible()
+        assert page.locator("#view-tech #freshness").is_visible()
         page.screenshot(path=args.screenshot, full_page=True)
+
+        mobile = browser.new_page(viewport={"width": 390, "height": 850})
+        mobile.goto(args.url, wait_until="networkidle")
+        assert mobile.evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1")
+        mobile.locator('[data-view="tech"]').click()
+        assert mobile.locator("#view-tech").is_visible()
+        mobile.close()
         browser.close()
 
     if errors:

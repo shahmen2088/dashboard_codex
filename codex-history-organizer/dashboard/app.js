@@ -207,7 +207,7 @@ function setActiveView(view) {
 
 function configureViews() {
   const saved = localStorage.getItem("codex-history-active-view");
-  const available = ["map", "table", "board", "timeline", "graph"];
+  const available = ["map", "table", "board", "timeline", "graph", "tech"];
   setActiveView(available.includes(saved) ? saved : "map");
   document.querySelectorAll(".view-tab").forEach((tab) => tab.addEventListener("click", () => setActiveView(tab.dataset.view)));
 }

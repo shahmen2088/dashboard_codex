@@ -20,19 +20,6 @@
             <span class="safety-dot"></span>
             <span><strong>Только чтение</strong><small>история не изменяется</small></span>
           </div>
-          <div class="refresh-panel" aria-label="Обновление данных">
-            <div class="refresh-panel__status"><span id="refresh-dot" class="refresh-dot"></span><span id="freshness">Проверяю источник…</span></div>
-            <div class="refresh-panel__controls">
-              <label for="refresh-interval">Автообновление</label>
-              <select id="refresh-interval">
-                <option value="0">Выключено</option>
-                <option value="30">30 секунд</option>
-                <option value="60" selected>1 минута</option>
-                <option value="300">5 минут</option>
-              </select>
-              <button id="refresh-now" class="button button--quiet" type="button">Обновить</button>
-            </div>
-          </div>
         </div>
       </header>
 
@@ -42,18 +29,6 @@
         <article class="stat-card"><span>Ценных</span><strong id="stat-high-value">—</strong><small>с высокой полезностью</small></article>
         <article class="stat-card stat-card--warn"><span>Внимание</span><strong id="stat-attention">—</strong><small>нужно проверить вручную</small></article>
       </section>
-
-      <details id="setup-panel" class="setup-panel" open>
-        <summary><span><span class="eyebrow">02 / Подключение</span><strong>Проверить готовность системы</strong></span><span id="setup-summary" class="setup-summary">Проверяю…</span></summary>
-        <div class="setup-body">
-          <div id="setup-steps" class="setup-steps" aria-live="polite"></div>
-          <div class="setup-footer">
-            <div><span class="eyebrow">Команда для планировщика Windows</span><code id="setup-command">powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\maintenance\install_refresh_task.ps1 -EveryMinutes 15</code></div>
-            <button id="setup-copy" class="button button--quiet" type="button">Скопировать</button>
-            <span id="setup-copy-status" class="setup-copy-status" aria-live="polite"></span>
-          </div>
-        </div>
-      </details>
 
       <section class="section-heading view-heading">
         <div><p class="eyebrow">01 / Представления</p><h2>Историю можно читать под задачу</h2></div>
@@ -65,6 +40,7 @@
         <button class="view-tab" data-view="board" role="tab" aria-selected="false">Канбан</button>
         <button class="view-tab" data-view="timeline" role="tab" aria-selected="false">Хронология</button>
         <button class="view-tab" data-view="graph" role="tab" aria-selected="false">Связи</button>
+        <button class="view-tab view-tab--technical" data-view="tech" role="tab" aria-selected="false">Техника</button>
       </nav>
 
       <section id="view-map" class="view-panel" data-view-panel="map">
@@ -114,7 +90,43 @@
         <div class="graph-panel"><svg id="history-graph" viewBox="0 0 1000 620" role="img" aria-label="Граф проектных направлений"></svg></div>
       </section>
 
-      <footer class="footer"><span>Источник: локальный экспорт CodexChatAudit</span><span>Данные не отправляются наружу</span></footer>
+      <section id="view-tech" class="view-panel" data-view-panel="tech" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / Техника</p><h2>Служебные сведения</h2></div><p class="section-note">Статус подключения, обновление и диагностика для тех, кто отвечает за систему.</p></div>
+        <div class="technical-layout">
+          <section class="technical-card" aria-label="Обновление данных">
+            <p class="eyebrow">Источник данных</p>
+            <h3>Локальный экспорт</h3>
+            <p class="technical-card__copy">Панель читает подготовленный индекс на этом компьютере. История не отправляется наружу.</p>
+            <div class="refresh-panel" aria-label="Обновление данных">
+              <div class="refresh-panel__status"><span id="refresh-dot" class="refresh-dot"></span><span id="freshness">Проверяю источник…</span></div>
+              <div class="refresh-panel__controls">
+                <label for="refresh-interval">Автообновление</label>
+                <select id="refresh-interval">
+                  <option value="0">Выключено</option>
+                  <option value="30">30 секунд</option>
+                  <option value="60" selected>1 минута</option>
+                  <option value="300">5 минут</option>
+                </select>
+                <button id="refresh-now" class="button button--quiet" type="button">Обновить</button>
+              </div>
+            </div>
+          </section>
+
+          <details id="setup-panel" class="setup-panel" open>
+            <summary><span><span class="eyebrow">Подключение</span><strong>Проверить готовность системы</strong></span><span id="setup-summary" class="setup-summary">Проверяю…</span></summary>
+            <div class="setup-body">
+              <div id="setup-steps" class="setup-steps" aria-live="polite"></div>
+              <div class="setup-footer">
+                <div><span class="eyebrow">Команда для планировщика Windows</span><code id="setup-command">powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\maintenance\install_refresh_task.ps1 -EveryMinutes 15</code></div>
+                <button id="setup-copy" class="button button--quiet" type="button">Скопировать</button>
+                <span id="setup-copy-status" class="setup-copy-status" aria-live="polite"></span>
+              </div>
+            </div>
+          </details>
+        </div>
+      </section>
+
+      <footer class="footer"><span>Локальная панель · только чтение</span><span>Изменения истории не выполняются</span></footer>
     </main>
     <script src="/app.js" defer></script>
   </body>

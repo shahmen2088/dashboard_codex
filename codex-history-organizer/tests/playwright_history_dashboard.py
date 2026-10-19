@@ -12,6 +12,10 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", default="http://127.0.0.1:8787/")
     parser.add_argument("--screenshot", default=os.path.join(os.getenv("TEMP", "."), "codex-history-dashboard.png"))
+    parser.add_argument("--expected-projects", type=int, default=10)
+    parser.add_argument("--query", default="Bitrix24")
+    parser.add_argument("--expected-query-results", type=int, default=4)
+    parser.add_argument("--project", default="Presentation video")
     args = parser.parse_args()
     errors: list[str] = []
 
@@ -24,21 +28,21 @@ def main() -> int:
 
         assert page.title() == "Карта истории Codex"
         assert int(page.locator("#stat-sessions").inner_text()) > 0
-        assert page.locator(".project-card").count() == 10
+        assert page.locator(".project-card").count() == args.expected_projects
         assert page.locator("#session-list .session-row").count() > 0
         assert page.locator("#refresh-interval").input_value() == "60"
         assert "Источник обновлён" in page.locator("#freshness").inner_text()
         assert page.locator("#setup-steps .setup-step").count() == 4
         assert page.locator("#setup-summary").inner_text() == "Готово к работе"
 
-        page.locator("#query").fill("Bitrix24")
+        page.locator("#query").fill(args.query)
         page.wait_for_timeout(150)
-        assert page.locator("#session-list .session-row").count() == 4
+        assert page.locator("#session-list .session-row").count() == args.expected_query_results
 
-        page.locator('[data-project="Presentation video"]').click()
+        page.locator(f'[data-project="{args.project}"]').click()
         page.wait_for_selector("#detail-panel h3", state="visible")
         detail_text = page.locator("#detail-panel").inner_text()
-        assert "Presentation video" in detail_text, detail_text
+        assert args.project in detail_text, detail_text
 
         page.locator('[data-view="table"]').click()
         assert page.locator("#view-table").is_visible()
@@ -54,7 +58,7 @@ def main() -> int:
 
         page.locator('[data-view="graph"]').click()
         assert page.locator("#view-graph").is_visible()
-        assert page.locator(".graph-node").count() == 10
+        assert page.locator(".graph-node").count() == args.expected_projects
         page.screenshot(path=args.screenshot, full_page=True)
         browser.close()
 

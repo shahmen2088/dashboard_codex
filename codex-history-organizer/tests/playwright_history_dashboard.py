@@ -31,7 +31,7 @@ def main() -> int:
         assert page.title() == "Карта истории Codex"
         assert page.locator(".hero .eyebrow").inner_text().casefold() == "органайзер истории codex"
         assert int(page.locator("#stat-sessions").inner_text()) > 0
-        assert page.locator(".project-card").count() == args.expected_projects
+        assert page.locator("#project-grid").count() == 0
         assert page.locator("#chat-list .chat-row").count() > 0
         assert page.locator(".chat-row__locator").count() > 0
         assert page.locator("#refresh-interval").input_value() == "60"
@@ -40,7 +40,7 @@ def main() -> int:
         assert page.locator("#setup-summary").inner_text() == "Готово к работе"
         assert page.locator("#view-tech").is_hidden()
         assert page.locator('[data-view="tech"]').count() == 1
-        assert page.locator("#filters").evaluate("(el) => Boolean(el.compareDocumentPosition(document.querySelector('#project-grid')) & Node.DOCUMENT_POSITION_FOLLOWING)")
+        assert page.locator("#filters").evaluate("(el) => Boolean(el.compareDocumentPosition(document.querySelector('#chat-list')) & Node.DOCUMENT_POSITION_FOLLOWING)")
 
         page.locator("#query").fill(args.query)
         page.wait_for_timeout(150)
@@ -51,10 +51,16 @@ def main() -> int:
             page.wait_for_timeout(150)
             assert page.locator("#chat-list .chat-row").count() == args.expected_description_results
 
-        page.locator(f'[data-project="{args.project}"]').click()
+        page.locator("#query").fill("")
+        page.wait_for_timeout(150)
+        selected_chat = page.locator("#chat-list .chat-row").first
+        selected_title = selected_chat.locator(".chat-row__main strong").inner_text()
+        selected_project = selected_chat.locator(".chat-row__main small").inner_text()
+        selected_chat.click()
         page.wait_for_selector(".detail-panel__description", state="visible")
         detail_text = page.locator("#detail-panel").inner_text()
-        assert args.project in detail_text, detail_text
+        assert selected_title in detail_text, detail_text
+        assert selected_project in detail_text, detail_text
         assert page.locator(".detail-panel__description").count() == 1
         assert page.locator(".detail-panel__description").is_visible()
         assert "описание проекта" in detail_text.casefold()

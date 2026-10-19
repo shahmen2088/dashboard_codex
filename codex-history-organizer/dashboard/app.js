@@ -1,4 +1,4 @@
-const state = { overview: null, chats: [], allSessions: [], selectedProject: "", activeView: "map", refreshTimer: null, refreshing: false };
+const state = { overview: null, chats: [], allSessions: [], selectedProject: "", selectedChatTitle: "", activeView: "map", refreshTimer: null, refreshing: false };
 
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -13,7 +13,6 @@ async function getJson(url) {
 
 function renderStats(overview) {
   $("#stat-sessions").textContent = overview.sessions;
-  $("#stat-groups").textContent = overview.groups;
   $("#stat-high-value").textContent = overview.high_value;
   $("#stat-attention").textContent = overview.needs_attention;
 }
@@ -56,35 +55,31 @@ function renderSetup(status) {
   }
 }
 
-function renderProjects(groups) {
-  const total = Math.max(...groups.map((group) => group.sessions), 1);
-  $("#project-grid").innerHTML = groups.map((group, index) => {
-    const uncertain = group.uncertain > 0;
-    const width = Math.max(10, Math.round((group.sessions / total) * 100));
-    return `<button class="project-card ${uncertain ? "project-card--uncertain" : ""}" data-project="${escapeHtml(group.name)}">
-      <span class="project-card__index">${String(index + 1).padStart(2, "0")}</span>
-      <h3>${escapeHtml(group.name)}</h3>
-      <div class="project-card__meta"><span>${group.sessions} сессий</span><span>${uncertain ? "нужно проверить" : "уверенная группа"}</span></div>
-      <div class="project-card__bar" aria-label="Объём группы"><span style="width: ${width}%"></span></div>
-    </button>`;
-  }).join("");
-  document.querySelectorAll("[data-project]").forEach((button) => {
-    button.addEventListener("click", () => loadProject(button.dataset.project));
-  });
-}
-
 function renderChats(chats) {
   $("#session-count").textContent = `${chats.length} чатов найдено`;
   if (!chats.length) {
     $("#chat-list").innerHTML = `<div class="empty-state">Чаты не найдены. Попробуйте изменить запрос или открыть другой проект.</div>`;
     return;
   }
-  $("#chat-list").innerHTML = chats.map((chat) => `<article class="chat-row">
+  $("#chat-list").innerHTML = chats.map((chat) => `<article class="chat-row" data-chat-project="${escapeHtml(chat.project || "")}" data-chat-title="${escapeHtml(chat.title || "Без названия")}" tabindex="0" role="button" aria-label="Открыть сведения о чате ${escapeHtml(chat.title || "Без названия")}">
     <div class="chat-row__main"><strong>${escapeHtml(chat.title || "Без названия")}</strong><small>${escapeHtml(chat.project || "Без проекта")}</small></div>
     <div class="chat-row__context"><span>${escapeHtml((chat.topics || []).join(" · ") || "Тема не указана")}</span><small>${chat.sessions} связанных записей · обновлён ${formatDate(chat.last_event_at)}</small></div>
     <span class="session-row__status" data-value="${escapeHtml(chat.value)}">${escapeHtml(chat.value || "не указано")}</span>
     <div class="chat-row__action">${chat.chat_url ? `<a class="chat-row__open" href="${escapeHtml(chat.chat_url)}" target="_blank" rel="noopener noreferrer">Открыть чат в ChatGPT</a>` : `<small class="chat-row__locator"><strong>Как найти в ChatGPT</strong>${escapeHtml(chat.chat_locator || "Откройте проект и найдите чат по названию.")}</small>`}</div>
   </article>`).join("");
+  document.querySelectorAll("[data-chat-project]").forEach((row) => {
+    const openDetails = () => loadProject(row.dataset.chatProject, row.dataset.chatTitle);
+    row.addEventListener("click", (event) => {
+      if (event.target.closest("a")) return;
+      openDetails();
+    });
+    row.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        openDetails();
+      }
+    });
+  });
 }
 
 function formatDate(value) {
@@ -156,13 +151,14 @@ async function loadChats() {
   }
 }
 
-async function loadProject(project) {
+async function loadProject(project, chatTitle = "") {
   state.selectedProject = project;
+  state.selectedChatTitle = chatTitle;
   const panel = $("#detail-panel");
-  panel.innerHTML = `<div class="detail-empty"><span class="detail-icon">…</span><p>Загружаю карту проекта.</p></div>`;
+  panel.innerHTML = `<div class="detail-empty"><span class="detail-icon">…</span><p>Загружаю описание проекта.</p></div>`;
   try {
     const data = await getJson(`/api/projects/${encodeURIComponent(project)}`);
-    panel.innerHTML = `<div class="detail-panel__header"><p class="eyebrow">Выбранное направление</p><h3>${escapeHtml(data.project)}</h3><p class="detail-panel__description"><strong>Описание проекта</strong>${escapeHtml(data.description || "Описание пока не подготовлено.")}</p></div>
+    panel.innerHTML = `<div class="detail-panel__header"><p class="eyebrow">Выбранный чат</p><h3>${escapeHtml(chatTitle || "Без названия")}</h3><p class="detail-panel__project">Проект: ${escapeHtml(data.project)}</p><p class="detail-panel__description"><strong>Описание проекта</strong>${escapeHtml(data.description || "Описание пока не подготовлено.")}</p></div>
       <div class="detail-metric"><span>Сессий</span><strong>${data.sessions}</strong></div>
       <div class="detail-metric"><span>Высокой ценности</span><strong>${data.high_value}</strong></div>
       <ul class="detail-list">${(data.highlights || []).slice(0, 6).map((item) => `<li>${escapeHtml(item.replace(/^[-# ]+/, ""))}</li>`).join("") || "<li>Краткие сведения пока не подготовлены.</li>"}</ul>`;
@@ -178,14 +174,13 @@ async function refreshDashboard({ silent = false } = {}) {
     state.overview = await getJson("/api/overview");
     renderSetup(await getJson("/api/status"));
     renderStats(state.overview);
-    renderProjects(state.overview.groups_data || []);
     state.allSessions = await getJson("/api/sessions?limit=500");
     renderAlternativeViews();
     await loadChats();
-    if (state.selectedProject) await loadProject(state.selectedProject);
+    if (state.selectedProject) await loadProject(state.selectedProject, state.selectedChatTitle);
     renderFreshness(state.overview);
   } catch (error) {
-    if (!silent) $("#project-grid").innerHTML = `<div class="empty-state">Данные пока недоступны: ${escapeHtml(error.message)}</div>`;
+    if (!silent) $("#chat-list").innerHTML = `<div class="empty-state">Данные пока недоступны: ${escapeHtml(error.message)}</div>`;
     renderFreshness(state.overview || {}, true);
   } finally {
     state.refreshing = false;

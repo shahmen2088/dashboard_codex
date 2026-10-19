@@ -31,7 +31,7 @@ class DashboardServerTests(unittest.TestCase):
             writer.writeheader()
             writer.writerow({
                 "record_id": "one", "archive_status": "active", "index_thread_name": "Demo",
-                "proposed_name": "Demo", "started_at": "2026-01-01", "last_event_at": "2026-01-02",
+                "proposed_name": "Generated project summary", "started_at": "2026-01-01", "last_event_at": "2026-01-02",
                 "project": "Demo project", "topic": "Testing", "confidence": "high",
                 "value": "high", "summary": "Safe summary", "open_tasks": "Review",
             })
@@ -81,6 +81,7 @@ class DashboardServerTests(unittest.TestCase):
         self.assertEqual(len(self.get_json("/api/sessions?q=demo")), 1)
         chats = self.get_json("/api/chats?q=demo")
         self.assertEqual(len(chats), 1)
+        self.assertEqual(chats[0]["title"], "Demo")
         self.assertEqual(chats[0]["chat_url"], "")
         self.assertIn("Demo project", chats[0]["chat_locator"])
         project = self.get_json("/api/projects/" + quote("Demo project"))

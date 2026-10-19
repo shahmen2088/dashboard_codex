@@ -25,14 +25,13 @@
 
       <section class="stats" aria-label="Обзор истории">
         <article class="stat-card stat-card--accent"><span>Сессий</span><strong id="stat-sessions">—</strong><small>в подготовленном индексе</small></article>
-        <article class="stat-card"><span>Групп</span><strong id="stat-groups">—</strong><small>проектных направлений</small></article>
         <article class="stat-card"><span>Ценных</span><strong id="stat-high-value">—</strong><small>с высокой полезностью</small></article>
         <article class="stat-card stat-card--warn"><span>Внимание</span><strong id="stat-attention">—</strong><small>нужно проверить вручную</small></article>
       </section>
 
       <section class="section-heading view-heading">
         <div><p class="eyebrow">01 / Представления</p><h2>Историю можно читать под задачу</h2></div>
-        <p class="section-note">Один локальный индекс — пять способов увидеть главное.</p>
+        <p class="section-note">Один локальный индекс — шесть способов увидеть главное.</p>
       </section>
       <nav id="view-tabs" class="view-tabs" aria-label="Представления истории" role="tablist">
         <button class="view-tab view-tab--active" data-view="map" role="tab" aria-selected="true">Карта</button>
@@ -61,15 +60,9 @@
           </div>
 
           <aside id="detail-panel" class="detail-panel" aria-live="polite">
-            <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите проект</h3><p>Здесь появится краткая карта знаний, когда вы нажмёте на карточку проекта.</p></div>
+            <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите чат</h3><p>Здесь появится описание его проекта, когда вы нажмёте на чат в списке.</p></div>
           </aside>
         </section>
-
-        <section class="section-heading section-heading--projects">
-          <div><p class="eyebrow">03 / Карта</p><h2>Проекты и направления</h2></div>
-          <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
-        </section>
-        <section id="project-grid" class="project-grid" aria-live="polite"></section>
       </section>
 
       <section id="view-table" class="view-panel" data-view-panel="table" hidden>

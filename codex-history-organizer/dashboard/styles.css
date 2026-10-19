@@ -88,7 +88,7 @@ h3 { margin-bottom: 8px; font-size: 1rem; }
 .view-tab--active { border-color: var(--cyan); background: rgba(86, 215, 233, .15); color: var(--text); box-shadow: 0 0 22px rgba(86, 215, 233, .08); }
 .view-tab--technical { border-style: dashed; color: var(--cyan); }
 .view-panel[hidden] { display: none; }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 68px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 68px; }
 .stat-card { min-height: 148px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, rgba(20, 37, 68, .95), rgba(11, 25, 48, .94)); box-shadow: var(--shadow); }
 .stat-card span, .stat-card small { display: block; color: var(--muted); }
 .stat-card strong { display: block; margin: 14px 0 8px; color: var(--text); font-size: 2.8rem; line-height: 1; }
@@ -124,7 +124,8 @@ h3 { margin-bottom: 8px; font-size: 1rem; }
 .session-row__status[data-value="high"] { color: var(--green); }
 .session-row__status[data-value="low"] { color: var(--amber); }
 .chat-list { display: grid; gap: 0; }
-.chat-row { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1fr) 76px minmax(220px, 1.35fr); gap: 14px; align-items: center; padding: 15px 0; border-top: 1px solid rgba(40, 65, 103, .7); }
+.chat-row { display: grid; grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1fr) 76px minmax(220px, 1.35fr); gap: 14px; align-items: center; padding: 15px 12px; border-top: 1px solid rgba(40, 65, 103, .7); cursor: pointer; transition: background .18s ease, border-color .18s ease; }
+.chat-row:hover, .chat-row:focus-visible { border-color: var(--cyan); background: rgba(86, 215, 233, .07); outline: none; }
 .chat-row__main strong, .chat-row__main small, .chat-row__context span, .chat-row__context small, .chat-row__locator { display: block; }
 .chat-row__main strong { color: var(--text); line-height: 1.3; }
 .chat-row__main small, .chat-row__context span, .chat-row__context small { margin-top: 5px; color: var(--muted); font-size: .76rem; line-height: 1.35; }
@@ -142,6 +143,7 @@ h3 { margin-bottom: 8px; font-size: 1rem; }
 .detail-panel__header { padding-bottom: 18px; border-bottom: 1px solid var(--line); }
 .detail-panel__header h3 { color: var(--text); font-size: 1.35rem; }
 .detail-panel__header p { color: var(--muted); font-size: .86rem; }
+.detail-panel__project { margin-bottom: 0; }
 .detail-panel__description { display: grid; gap: 6px; margin: 16px 0 0; line-height: 1.5; }
 .detail-panel__description strong { color: var(--cyan); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
 .detail-metric { display: flex; justify-content: space-between; gap: 14px; padding: 13px 0; border-bottom: 1px solid rgba(40, 65, 103, .5); color: var(--muted); font-size: .85rem; }

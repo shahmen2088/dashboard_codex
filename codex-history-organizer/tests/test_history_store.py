@@ -19,7 +19,7 @@ class HistoryStoreTests(unittest.TestCase):
                 "session_meta_id": "chat-one",
                 "archive_status": "active",
                 "index_thread_name": "Quoted, session",
-                "proposed_name": "Quoted, session",
+                "proposed_name": "Generated alternative",
                 "started_at": "2026-01-01T00:00:00Z",
                 "last_event_at": "2026-01-02T00:00:00Z",
                 "project": "Demo project",
@@ -49,7 +49,7 @@ class HistoryStoreTests(unittest.TestCase):
                 "session_meta_id": "chat-one",
                 "archive_status": "active",
                 "index_thread_name": "Follow-up",
-                "proposed_name": "Follow-up",
+                "proposed_name": "Generated follow-up",
                 "started_at": "2026-01-03T00:00:00Z",
                 "last_event_at": "2026-01-04T00:00:00Z",
                 "project": "Demo project",
@@ -100,6 +100,7 @@ class HistoryStoreTests(unittest.TestCase):
         self.assertEqual(len(chats), 2)
         demo = next(chat for chat in chats if chat["project"] == "Demo project")
         self.assertEqual(demo["sessions"], 2)
+        self.assertEqual(demo["title"], "Follow-up")
         self.assertEqual(demo["chat_url"], "")
         self.assertIn("Follow-up", demo["chat_locator"])
         self.assertIn("Demo project", demo["chat_locator"])

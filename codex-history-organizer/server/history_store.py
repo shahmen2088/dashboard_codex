@@ -93,7 +93,7 @@ class HistoryStore:
         action = action or {}
         return SessionCard(
             record_id=row.get("record_id", ""),
-            name=redact_text(_first_nonempty(row, "proposed_name", "index_thread_name"), 120),
+            name=redact_text(_first_nonempty(row, "index_thread_name", "proposed_name"), 120),
             project=redact_text(row.get("project", "") or "Без проекта", 100),
             topic=redact_text(row.get("topic", "") or "Без темы", 100),
             started_at=row.get("started_at", ""),

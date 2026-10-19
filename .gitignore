@@ -1,0 +1,25 @@
+# Personal Codex audit output. The generator remains tracked, its data does not.
+/CodexChatAudit/inventory.csv
+/CodexChatAudit/actions.csv
+/CodexChatAudit/projects.md
+/CodexChatAudit/report.md
+/CodexChatAudit/audit_plan.md
+/CodexChatAudit/refresh_status.json
+/CodexChatAudit/project_summaries/
+
+# Local Python and test artifacts.
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local review/export artifacts from this workspace.
+/_cache_review/
+/_cache_review.zip
+/pdf_review/
+/fl_matches*.json
+/fl_monitor_profile.json
+/control_center/
+
+# Local-only media and drafts.
+/production_video_script.md
+/FL_MONITOR_README.md

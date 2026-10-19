@@ -1,4 +1,4 @@
-const state = { overview: null, sessions: [], selectedProject: "" };
+const state = { overview: null, sessions: [], selectedProject: "", refreshTimer: null, refreshing: false };
 
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -16,6 +16,20 @@ function renderStats(overview) {
   $("#stat-groups").textContent = overview.groups;
   $("#stat-high-value").textContent = overview.high_value;
   $("#stat-attention").textContent = overview.needs_attention;
+}
+
+function renderFreshness(overview, error = false) {
+  const label = $("#freshness");
+  const dot = $("#refresh-dot");
+  if (error) {
+    label.textContent = "Источник недоступен";
+    dot.className = "refresh-dot refresh-dot--error";
+    return;
+  }
+  const raw = overview.last_updated;
+  const formatted = raw ? new Intl.DateTimeFormat("ru-RU", { dateStyle: "short", timeStyle: "short" }).format(new Date(raw)) : "нет аудита";
+  label.textContent = `Источник обновлён ${formatted}`;
+  dot.className = "refresh-dot refresh-dot--ready";
 }
 
 function renderProjects(groups) {
@@ -73,15 +87,42 @@ async function loadProject(project) {
   }
 }
 
-async function init() {
+async function refreshDashboard({ silent = false } = {}) {
+  if (state.refreshing) return;
+  state.refreshing = true;
   try {
     state.overview = await getJson("/api/overview");
     renderStats(state.overview);
     renderProjects(state.overview.groups_data || []);
     await loadSessions();
+    if (state.selectedProject) await loadProject(state.selectedProject);
+    renderFreshness(state.overview);
   } catch (error) {
-    $("#project-grid").innerHTML = `<div class="empty-state">Данные пока недоступны: ${escapeHtml(error.message)}</div>`;
+    if (!silent) $("#project-grid").innerHTML = `<div class="empty-state">Данные пока недоступны: ${escapeHtml(error.message)}</div>`;
+    renderFreshness(state.overview || {}, true);
+  } finally {
+    state.refreshing = false;
   }
+}
+
+function configureAutoRefresh() {
+  const select = $("#refresh-interval");
+  const saved = localStorage.getItem("codex-history-refresh-seconds");
+  if (saved && [...select.options].some((option) => option.value === saved)) select.value = saved;
+  const schedule = () => {
+    if (state.refreshTimer) clearInterval(state.refreshTimer);
+    const seconds = Number(select.value);
+    localStorage.setItem("codex-history-refresh-seconds", select.value);
+    if (seconds > 0) state.refreshTimer = setInterval(() => refreshDashboard({ silent: true }), seconds * 1000);
+  };
+  select.addEventListener("change", schedule);
+  $("#refresh-now").addEventListener("click", () => refreshDashboard());
+  schedule();
+}
+
+async function init() {
+  configureAutoRefresh();
+  await refreshDashboard();
   $("#query").addEventListener("input", loadSessions);
   $("#value").addEventListener("change", loadSessions);
   $("#filters").addEventListener("reset", () => setTimeout(loadSessions, 0));

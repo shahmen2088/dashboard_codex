@@ -15,9 +15,24 @@
           <h1>История, которую можно понять за минуту.</h1>
           <p class="lede">Проекты, важные решения и незакрытые задачи собраны в одну спокойную карту.</p>
         </div>
-        <div class="safety-badge" aria-label="Режим только чтение">
-          <span class="safety-dot"></span>
-          <span><strong>Только чтение</strong><small>история не изменяется</small></span>
+        <div class="hero-tools">
+          <div class="safety-badge" aria-label="Режим только чтение">
+            <span class="safety-dot"></span>
+            <span><strong>Только чтение</strong><small>история не изменяется</small></span>
+          </div>
+          <div class="refresh-panel" aria-label="Обновление данных">
+            <div class="refresh-panel__status"><span id="refresh-dot" class="refresh-dot"></span><span id="freshness">Проверяю источник…</span></div>
+            <div class="refresh-panel__controls">
+              <label for="refresh-interval">Автообновление</label>
+              <select id="refresh-interval">
+                <option value="0">Выключено</option>
+                <option value="30">30 секунд</option>
+                <option value="60" selected>1 минута</option>
+                <option value="300">5 минут</option>
+              </select>
+              <button id="refresh-now" class="button button--quiet" type="button">Обновить</button>
+            </div>
+          </div>
         </div>
       </header>
 

@@ -4,6 +4,7 @@ import csv
 import os
 import re
 from collections import Counter, defaultdict
+from datetime import datetime
 from pathlib import Path
 from typing import Iterable
 
@@ -93,6 +94,16 @@ class HistoryStore:
         actions = self._actions()
         return [self._card(row, actions.get(row.get("record_id", ""))) for row in self._inventory()]
 
+    def source_updated_at(self) -> str:
+        candidates = [self.audit_dir / name for name in ALLOWED_FILES]
+        summaries = self.audit_dir / "project_summaries"
+        if summaries.is_dir():
+            candidates.extend(summaries.glob("*.md"))
+        timestamps = [path.stat().st_mtime for path in candidates if path.is_file()]
+        if not timestamps:
+            return ""
+        return datetime.fromtimestamp(max(timestamps)).astimezone().isoformat(timespec="seconds")
+
     def overview(self) -> dict:
         cards = self._cards()
         groups: dict[str, list[SessionCard]] = defaultdict(list)
@@ -119,6 +130,7 @@ class HistoryStore:
             "high_value": sum(item.value.lower() == "high" for item in cards),
             "needs_attention": sum(item.action not in {"", "keep_and_tag"} for item in cards),
             "date_range": {"start": min(starts, default=""), "end": max(ends, default="")},
+            "last_updated": self.source_updated_at(),
             "groups_data": group_rows,
             "read_only": True,
             "source": "CodexChatAudit export",

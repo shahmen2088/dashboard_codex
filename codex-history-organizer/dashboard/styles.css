@@ -39,6 +39,15 @@ h3 { margin-bottom: 8px; font-size: 1rem; }
 .safety-badge strong, .safety-badge small { display: block; }
 .safety-badge small { margin-top: 3px; color: var(--muted); font-size: .75rem; }
 .safety-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--green); box-shadow: 0 0 18px var(--green); }
+.hero-tools { display: grid; gap: 10px; min-width: min(100%, 360px); }
+.refresh-panel { padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; background: rgba(13, 29, 55, .72); }
+.refresh-panel__status, .refresh-panel__controls { display: flex; align-items: center; gap: 8px; }
+.refresh-panel__status { color: var(--muted); font-size: .76rem; margin-bottom: 10px; }
+.refresh-panel__controls { justify-content: space-between; color: var(--text); font-size: .8rem; }
+.refresh-panel select { max-width: 130px; }
+.refresh-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); box-shadow: 0 0 0 4px rgba(255,255,255,.04); }
+.refresh-dot--ready { background: var(--green); box-shadow: 0 0 0 4px rgba(80,214,138,.12); }
+.refresh-dot--error { background: var(--amber); box-shadow: 0 0 0 4px rgba(243,201,81,.12); }
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 68px; }
 .stat-card { min-height: 148px; padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: linear-gradient(145deg, rgba(20, 37, 68, .95), rgba(11, 25, 48, .94)); box-shadow: var(--shadow); }
 .stat-card span, .stat-card small { display: block; color: var(--muted); }
@@ -93,7 +102,7 @@ h3 { margin-bottom: 8px; font-size: 1rem; }
   .shell { width: min(100% - 28px, 680px); padding-top: 26px; }
   .hero, .section-heading, .footer { align-items: flex-start; flex-direction: column; }
   .hero { gap: 24px; }
-  .safety-badge { width: 100%; }
+  .safety-badge, .refresh-panel { width: 100%; }
   .stats { grid-template-columns: repeat(2, 1fr); margin-bottom: 46px; }
   .project-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 46px; }
   .workspace { grid-template-columns: 1fr; }

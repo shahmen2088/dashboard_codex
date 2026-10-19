@@ -66,6 +66,7 @@ class HistoryStoreTests(unittest.TestCase):
         self.assertEqual(overview["sessions"], 2)
         self.assertEqual(overview["groups"], 2)
         self.assertTrue(overview["read_only"])
+        self.assertTrue(overview["last_updated"])
         self.assertEqual(len(store.list_sessions(query="quoted")), 1)
         self.assertEqual(len(store.list_sessions(value="normal")), 1)
 
@@ -92,6 +93,7 @@ class HistoryStoreTests(unittest.TestCase):
         empty.mkdir()
         store = HistoryStore(empty)
         self.assertEqual(store.overview()["sessions"], 0)
+        self.assertEqual(store.overview()["last_updated"], "")
         self.assertEqual(store.list_sessions(), [])
 
 

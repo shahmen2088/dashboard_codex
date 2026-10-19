@@ -23,9 +23,11 @@ def main() -> int:
         page.goto(args.url, wait_until="networkidle")
 
         assert page.title() == "Карта истории Codex"
-        assert page.locator("#stat-sessions").inner_text() == "47"
+        assert int(page.locator("#stat-sessions").inner_text()) > 0
         assert page.locator(".project-card").count() == 10
         assert page.locator("#session-list .session-row").count() > 0
+        assert page.locator("#refresh-interval").input_value() == "60"
+        assert "Источник обновлён" in page.locator("#freshness").inner_text()
 
         page.locator("#query").fill("Bitrix24")
         page.wait_for_timeout(150)

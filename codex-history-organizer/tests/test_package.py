@@ -24,6 +24,8 @@ class PackageStructureTests(unittest.TestCase):
         required = [
             ROOT / "skills" / "codex-history-organizer" / "SKILL.md",
             ROOT / "README.md",
+            ROOT / "maintenance" / "refresh_audit.py",
+            ROOT / "maintenance" / "install_refresh_task.ps1",
         ]
         for path in required:
             self.assertTrue(path.is_file(), path)

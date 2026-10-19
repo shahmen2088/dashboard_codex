@@ -1,0 +1,11 @@
+{
+  "name": "codex-history-organizer",
+  "version": "0.1.0",
+  "description": "Read-only local map of Codex history, projects, decisions, and open tasks.",
+  "skills": "./skills/",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true
+    }
+  }
+}

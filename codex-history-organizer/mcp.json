@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "codex_history": {
+      "type": "stdio",
+      "command": "python",
+      "args": ["${PLUGIN_ROOT}/server/mcp_server.py"],
+      "cwd": "${PLUGIN_ROOT}"
+    }
+  }
+}

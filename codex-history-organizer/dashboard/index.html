@@ -43,29 +43,63 @@
         <article class="stat-card stat-card--warn"><span>Внимание</span><strong id="stat-attention">—</strong><small>нужно проверить вручную</small></article>
       </section>
 
-      <section class="section-heading">
-        <div><p class="eyebrow">01 / Карта</p><h2>Проекты и направления</h2></div>
-        <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
+      <section class="section-heading view-heading">
+        <div><p class="eyebrow">01 / Представления</p><h2>Историю можно читать под задачу</h2></div>
+        <p class="section-note">Один локальный индекс — пять способов увидеть главное.</p>
       </section>
-      <section id="project-grid" class="project-grid" aria-live="polite"></section>
+      <nav id="view-tabs" class="view-tabs" aria-label="Представления истории" role="tablist">
+        <button class="view-tab view-tab--active" data-view="map" role="tab" aria-selected="true">Карта</button>
+        <button class="view-tab" data-view="table" role="tab" aria-selected="false">Таблица</button>
+        <button class="view-tab" data-view="board" role="tab" aria-selected="false">Канбан</button>
+        <button class="view-tab" data-view="timeline" role="tab" aria-selected="false">Хронология</button>
+        <button class="view-tab" data-view="graph" role="tab" aria-selected="false">Связи</button>
+      </nav>
 
-      <section class="workspace">
-        <div class="workspace-main">
-          <div class="section-heading section-heading--compact">
-            <div><p class="eyebrow">02 / Поиск</p><h2>Найти сессию</h2></div>
-            <span id="session-count" class="result-count">—</span>
+      <section id="view-map" class="view-panel" data-view-panel="map">
+        <section class="section-heading">
+          <div><p class="eyebrow">02 / Карта</p><h2>Проекты и направления</h2></div>
+          <p class="section-note">Размер показывает объём, цвет — состояние уверенности.</p>
+        </section>
+        <section id="project-grid" class="project-grid" aria-live="polite"></section>
+
+        <section class="workspace">
+          <div class="workspace-main">
+            <div class="section-heading section-heading--compact">
+              <div><p class="eyebrow">03 / Поиск</p><h2>Найти сессию</h2></div>
+              <span id="session-count" class="result-count">—</span>
+            </div>
+            <form id="filters" class="filters">
+              <label class="search-field"><span class="sr-only">Поиск</span><input id="query" type="search" placeholder="Название, проект или тема" autocomplete="off" /></label>
+              <label><span class="sr-only">Ценность</span><select id="value"><option value="">Любая ценность</option><option value="high">Высокая</option><option value="normal">Обычная</option><option value="low">Низкая</option></select></label>
+              <button class="button button--quiet" type="reset">Сбросить</button>
+            </form>
+            <div id="session-list" class="session-list" aria-live="polite"></div>
           </div>
-          <form id="filters" class="filters">
-            <label class="search-field"><span class="sr-only">Поиск</span><input id="query" type="search" placeholder="Название, проект или тема" autocomplete="off" /></label>
-            <label><span class="sr-only">Ценность</span><select id="value"><option value="">Любая ценность</option><option value="high">Высокая</option><option value="normal">Обычная</option><option value="low">Низкая</option></select></label>
-            <button class="button button--quiet" type="reset">Сбросить</button>
-          </form>
-          <div id="session-list" class="session-list" aria-live="polite"></div>
-        </div>
 
-        <aside id="detail-panel" class="detail-panel" aria-live="polite">
-          <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите проект</h3><p>Здесь появится краткая карта знаний, когда вы нажмёте на карточку проекта.</p></div>
-        </aside>
+          <aside id="detail-panel" class="detail-panel" aria-live="polite">
+            <div class="detail-empty"><span class="detail-icon">⌁</span><h3>Выберите проект</h3><p>Здесь появится краткая карта знаний, когда вы нажмёте на карточку проекта.</p></div>
+          </aside>
+        </section>
+      </section>
+
+      <section id="view-table" class="view-panel" data-view-panel="table" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / Таблица</p><h2>Все сессии в одном списке</h2></div><p class="section-note">Плотный режим для поиска и сравнения.</p></div>
+        <div id="table-view" class="data-table-wrap" aria-live="polite"></div>
+      </section>
+
+      <section id="view-board" class="view-panel" data-view-panel="board" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / Канбан</p><h2>Сигналы для ручного просмотра</h2></div><p class="section-note">Это подсказки аудита, не решения об архивировании.</p></div>
+        <div id="board-view" class="board-grid" aria-live="polite"></div>
+      </section>
+
+      <section id="view-timeline" class="view-panel" data-view-panel="timeline" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / Хронология</p><h2>Как развивалась работа</h2></div><p class="section-note">Сначала новые события, до 40 записей.</p></div>
+        <div id="timeline-view" class="timeline" aria-live="polite"></div>
+      </section>
+
+      <section id="view-graph" class="view-panel" data-view-panel="graph" hidden>
+        <div class="section-heading"><div><p class="eyebrow">02 / Связи</p><h2>Проекты вокруг общего контекста</h2></div><p class="section-note">Граф помогает увидеть структуру, а не заменить список.</p></div>
+        <div class="graph-panel"><svg id="history-graph" viewBox="0 0 1000 620" role="img" aria-label="Граф проектных направлений"></svg></div>
       </section>
 
       <footer class="footer"><span>Источник: локальный экспорт CodexChatAudit</span><span>Данные не отправляются наружу</span></footer>

@@ -37,6 +37,22 @@ def main() -> int:
         page.wait_for_selector("#detail-panel h3", state="visible")
         detail_text = page.locator("#detail-panel").inner_text()
         assert "Presentation video" in detail_text, detail_text
+
+        page.locator('[data-view="table"]').click()
+        assert page.locator("#view-table").is_visible()
+        assert page.locator(".history-table tbody tr").count() > 0
+
+        page.locator('[data-view="board"]').click()
+        assert page.locator("#view-board").is_visible()
+        assert page.locator(".board-column").count() == 3
+
+        page.locator('[data-view="timeline"]').click()
+        assert page.locator("#view-timeline").is_visible()
+        assert page.locator(".timeline-item").count() > 0
+
+        page.locator('[data-view="graph"]').click()
+        assert page.locator("#view-graph").is_visible()
+        assert page.locator(".graph-node").count() == 10
         page.screenshot(path=args.screenshot, full_page=True)
         browser.close()
 

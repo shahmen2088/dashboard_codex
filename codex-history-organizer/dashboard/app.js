@@ -1,4 +1,4 @@
-const state = { overview: null, sessions: [], selectedProject: "", refreshTimer: null, refreshing: false };
+const state = { overview: null, sessions: [], allSessions: [], selectedProject: "", activeView: "map", refreshTimer: null, refreshing: false };
 
 const $ = (selector) => document.querySelector(selector);
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -63,10 +63,70 @@ function renderSessions(sessions) {
   </article>`).join("");
 }
 
+function formatDate(value) {
+  if (!value) return "—";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat("ru-RU", { dateStyle: "medium" }).format(date);
+}
+
+function renderTable(sessions) {
+  $("#table-view").innerHTML = `<table class="history-table"><thead><tr><th>Сессия</th><th>Проект</th><th>Дата</th><th>Ценность</th><th>Уверенность</th></tr></thead><tbody>${sessions.map((session) => `<tr>
+    <td><strong>${escapeHtml(session.name || "Без названия")}</strong><small>${escapeHtml(session.topic || "")}</small></td>
+    <td>${escapeHtml(session.project || "Без проекта")}</td>
+    <td>${formatDate(session.last_event_at || session.started_at)}</td>
+    <td><span class="signal signal--${escapeHtml(session.value || "normal")}">${escapeHtml(session.value || "—")}</span></td>
+    <td>${escapeHtml(session.confidence || "—")}</td>
+  </tr>`).join("")}</tbody></table>`;
+}
+
+function renderBoard(sessions) {
+  const lanes = [
+    { key: "high", title: "Ценные сигналы", note: "value: high", items: sessions.filter((session) => session.value === "high") },
+    { key: "review", title: "Нужно проверить", note: "не финальное решение", items: sessions.filter((session) => session.value !== "high" && (session.confidence !== "high" || session.action !== "keep_and_tag")) },
+  ];
+  const assigned = new Set(lanes.flatMap((lane) => lane.items.map((session) => session.record_id)));
+  lanes.push({ key: "normal", title: "Обычные сигналы", note: "остальные записи", items: sessions.filter((session) => !assigned.has(session.record_id)) });
+  $("#board-view").innerHTML = lanes.map((lane) => `<section class="board-column board-column--${lane.key}">
+    <header><div><h3>${lane.title}</h3><small>${lane.note}</small></div><strong>${lane.items.length}</strong></header>
+    <div class="board-column__items">${lane.items.slice(0, 18).map((session) => `<article class="board-card"><strong>${escapeHtml(session.name || "Без названия")}</strong><small>${escapeHtml(session.project || "Без проекта")}</small><span>${formatDate(session.last_event_at || session.started_at)}</span></article>`).join("") || `<div class="empty-state">Нет записей</div>`}</div>
+  </section>`).join("");
+}
+
+function renderTimeline(sessions) {
+  const items = [...sessions].sort((a, b) => String(b.last_event_at || b.started_at).localeCompare(String(a.last_event_at || a.started_at))).slice(0, 40);
+  $("#timeline-view").innerHTML = items.map((session) => `<article class="timeline-item">
+    <div class="timeline-item__date">${formatDate(session.last_event_at || session.started_at)}</div>
+    <div class="timeline-item__dot"></div>
+    <div class="timeline-item__body"><strong>${escapeHtml(session.name || "Без названия")}</strong><small>${escapeHtml(session.project || "Без проекта")} · ${escapeHtml(session.topic || "Без темы")}</small><p>${escapeHtml(session.summary || "Краткая сводка не подготовлена.")}</p></div>
+  </article>`).join("") || `<div class="empty-state">Хронология пока пуста.</div>`;
+}
+
+function renderGraph(groups) {
+  const svg = $("#history-graph");
+  const center = { x: 500, y: 310 };
+  const radius = 215;
+  const nodes = groups.slice(0, 10).map((group, index, all) => {
+    const angle = -Math.PI / 2 + (index * Math.PI * 2) / Math.max(all.length, 1);
+    return { ...group, x: center.x + Math.cos(angle) * radius, y: center.y + Math.sin(angle) * radius };
+  });
+  const shorten = (value) => value.length > 24 ? `${value.slice(0, 23)}…` : value;
+  svg.innerHTML = `<g class="graph-links">${nodes.map((node) => `<line x1="${center.x}" y1="${center.y}" x2="${node.x}" y2="${node.y}"></line>`).join("")}</g>
+    <g class="graph-center"><circle cx="${center.x}" cy="${center.y}" r="70"></circle><text x="${center.x}" y="${center.y - 5}" text-anchor="middle">Codex</text><text x="${center.x}" y="${center.y + 18}" text-anchor="middle">History</text></g>
+    <g class="graph-nodes">${nodes.map((node) => `<g class="graph-node" tabindex="0"><circle cx="${node.x}" cy="${node.y}" r="${Math.max(25, Math.min(48, 24 + node.sessions * 1.6))}"></circle><text x="${node.x}" y="${node.y - 5}" text-anchor="middle">${escapeHtml(shorten(node.name))}</text><text class="graph-node__count" x="${node.x}" y="${node.y + 17}" text-anchor="middle">${node.sessions} сесс.</text></g>`).join("")}</g>`;
+}
+
+function renderAlternativeViews() {
+  renderTable(state.allSessions);
+  renderBoard(state.allSessions);
+  renderTimeline(state.allSessions);
+  renderGraph(state.overview?.groups_data || []);
+}
+
 async function loadSessions() {
   const query = new URLSearchParams({ q: $("#query").value, value: $("#value").value, limit: "100" });
   try {
-    renderSessions(await getJson(`/api/sessions?${query}`));
+    state.sessions = await getJson(`/api/sessions?${query}`);
+    renderSessions(state.sessions);
   } catch (error) {
     $("#session-list").innerHTML = `<div class="empty-state">Не удалось загрузить список: ${escapeHtml(error.message)}</div>`;
   }
@@ -94,6 +154,8 @@ async function refreshDashboard({ silent = false } = {}) {
     state.overview = await getJson("/api/overview");
     renderStats(state.overview);
     renderProjects(state.overview.groups_data || []);
+    state.allSessions = await getJson("/api/sessions?limit=500");
+    renderAlternativeViews();
     await loadSessions();
     if (state.selectedProject) await loadProject(state.selectedProject);
     renderFreshness(state.overview);
@@ -103,6 +165,26 @@ async function refreshDashboard({ silent = false } = {}) {
   } finally {
     state.refreshing = false;
   }
+}
+
+function setActiveView(view) {
+  state.activeView = view;
+  localStorage.setItem("codex-history-active-view", view);
+  document.querySelectorAll("[data-view-panel]").forEach((panel) => {
+    panel.hidden = panel.dataset.viewPanel !== view;
+  });
+  document.querySelectorAll(".view-tab").forEach((tab) => {
+    const active = tab.dataset.view === view;
+    tab.classList.toggle("view-tab--active", active);
+    tab.setAttribute("aria-selected", String(active));
+  });
+}
+
+function configureViews() {
+  const saved = localStorage.getItem("codex-history-active-view");
+  const available = ["map", "table", "board", "timeline", "graph"];
+  setActiveView(available.includes(saved) ? saved : "map");
+  document.querySelectorAll(".view-tab").forEach((tab) => tab.addEventListener("click", () => setActiveView(tab.dataset.view)));
 }
 
 function configureAutoRefresh() {
@@ -121,6 +203,7 @@ function configureAutoRefresh() {
 }
 
 async function init() {
+  configureViews();
   configureAutoRefresh();
   await refreshDashboard();
   $("#query").addEventListener("input", loadSessions);
